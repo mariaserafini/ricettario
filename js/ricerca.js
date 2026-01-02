@@ -131,6 +131,7 @@ export async function showSearch() {
                 <div class="search-flex checkboxes">
                     <div style="display: flex; gap: 20px;">
                         <label><input type="checkbox" id="s-stampate"> Solo stampate</label>
+                        <label><input type="checkbox" id="showHidden"> Mostra solo nascoste </label>
                     </div>
                 </div>
 
@@ -193,6 +194,7 @@ export async function eseguiRicerca() {
         const tTotaleMax = document.getElementById('s-tempo-totale').value;
         const stampate = document.getElementById('s-stampate').checked;
         const votoMin = document.getElementById('s-voto').value;
+        const showHidden = document.getElementById('showHidden').checked;
 
         let query = _supabase
             .from('ricette')
@@ -211,6 +213,8 @@ export async function eseguiRicerca() {
         if (metodo) query = query.eq('cottura', metodo);
         if (votoMin > 0) query = query.gte('voto', votoMin);
         if (stampate) query = query.eq('stampata', true);
+        if (!showHidden) query = query.eq('nascosta', false);
+        if (showHidden) query = query.eq('nascosta', true);
 
         // Logica Categoria (Ordine_Query)
         if (catVal) {

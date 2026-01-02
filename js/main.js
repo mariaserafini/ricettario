@@ -1,5 +1,5 @@
 // 1. Importa le funzioni dai tuoi file
-import { renderDifficolta, renderStars, generaStelline, aggiornaVoto, renderRecipeCard, convertiInMinuti, formattaTempo } from './ui.js';
+import { renderDifficolta, renderStars, generaStelline, aggiornaVoto, renderRecipeCard, convertiInMinuti, formattaTempo, toggleNascondi } from './ui.js';
 import { showHome } from './home.js';
 import { showLatest } from './recenti.js';
 import { showRicetta, saveComment } from './ricetta.js';
@@ -20,6 +20,7 @@ window.aggiornaVoto = aggiornaVoto;
 window.renderRecipeCard = renderRecipeCard;
 window.convertiInMinuti = convertiInMinuti;
 window.formattaTempo = formattaTempo;
+window.toggleNascondi = toggleNascondi;
 
 window.showSearch = showSearch;
 window.handleIngSearch = handleIngSearch;

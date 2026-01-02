@@ -836,6 +836,69 @@ input.no-arrows::-webkit-inner-spin-button {
     gap: 30px;
 }
 
+/* bottone occhiolino */
+.btn-toggle-view {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4a5568;
+    /* Grigio scuro moderno */
+    transition: color 0.2s;
+}
+
+.btn-toggle-view:hover {
+    color: #2d3748;
+}
+
+.icon-eye {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+
+.card-wrapper {
+    transition: transform 0.2s;
+}
+
+.card-eye-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    /* Fondamentale per stare sopra il link */
+    background: rgba(255, 255, 255, 0.5);
+    /* Sfondo semitrasparente per vederlo su ogni foto */
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.card-eye-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transform: scale(1.1);
+}
+
+.icon-eye {
+    width: 100%;
+    height: 100%;
+}
+
+
+
+
+
+
 /* --- 2. CONFIGURAZIONE MOBILE (SEMPRE IN FONDO AL FILE) --- */
 @media (max-width: 800px) {
 

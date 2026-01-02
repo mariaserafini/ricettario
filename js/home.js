@@ -19,7 +19,7 @@ export async function showHome() {
     let html = `<section class="home-header"><h1>Ispirazione del momento</h1><p>Una proposta per ogni categoria</p></section><div class="recipe-grid">`;
 
     const promesseRicette = categorieUniche.map(cat =>
-        _supabase.from('ricette').select(`pk_ricetta, titolo, autore, voto, immagine, tempo_cottura, tempo_preparazione, tempo_agg, categorie!inner (categoria)`).eq('categorie.categoria', cat.categoria)
+        _supabase.from('ricette').select(`pk_ricetta, titolo, autore, voto, immagine, tempo_cottura, tempo_preparazione, tempo_agg, categorie!inner (categoria)`).eq('categorie.categoria', cat.categoria).eq('nascosta', false)
     );
 
     const risultati = await Promise.all(promesseRicette);

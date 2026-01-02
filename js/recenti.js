@@ -8,7 +8,7 @@ export async function showLatest() {
 
     const { data: ultimeRicette, error } = await _supabase
         .from('ricette')
-        .select(`pk_ricetta, titolo, autore, voto, immagine, data, tempo_cottura, tempo_preparazione, tempo_agg, immagine, categorie(categoria)`)
+        .select(`pk_ricetta, titolo, autore, voto, immagine, nascosta, data, tempo_cottura, tempo_preparazione, tempo_agg, immagine, categorie(categoria)`)
         .order('data', { ascending: false })
         .limit(36);
 
