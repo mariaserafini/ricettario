@@ -850,6 +850,39 @@ input.no-arrows::-webkit-inner-spin-button {
     transition: color 0.2s;
 }
 
+/* Stile per il bottone nel dettaglio ricetta */
+.recipe-header-centered .btn-toggle-view {
+    background: #f0f0f0;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+    vertical-align: middle;
+    transition: all 0.2s;
+}
+
+.recipe-header-centered .btn-toggle-view:hover {
+    background: #e0e0e0;
+    transform: scale(1.1);
+}
+
+/* Forza la dimensione dell'SVG nel dettaglio */
+.recipe-header-centered .icon-eye {
+    width: 24px;
+    height: 24px;
+    stroke: #333;
+    /* Colore dell'icona */
+    stroke-width: 2;
+    fill: none;
+}
+
+
 .btn-toggle-view:hover {
     color: #2d3748;
 }

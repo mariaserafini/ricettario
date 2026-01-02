@@ -200,7 +200,7 @@ export async function eseguiRicerca() {
             .from('ricette')
             .select(`
                 pk_ricetta, titolo, autore, voto, immagine, cottura, etnica, stampata,
-                tempo_cottura, tempo_preparazione, tempo_agg,
+                tempo_cottura, tempo_preparazione, tempo_agg, nascosta,
                 categorie!inner(categoria, sottocategoria, ordine_query),
                 ingredienti_ricette(fk_ingrediente, quant)
             `)
