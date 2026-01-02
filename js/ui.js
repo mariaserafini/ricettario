@@ -43,7 +43,7 @@ export async function aggiornaVoto(id, nuovoVoto) {
 }
 
 // Funzione per convertire "00:40:00" in minuti totali
-function convertiInMinuti(timeString) {
+export function convertiInMinuti(timeString) {
     if (!timeString || typeof timeString !== 'string') return 0;
     const parti = timeString.split(':');
     const ore = parseInt(parti[0]) || 0;
@@ -52,7 +52,7 @@ function convertiInMinuti(timeString) {
 }
 
 // Nuova funzione per formattare i minuti in "1h 30min" o "45min"
-function formattaTempo(minutiTotali) {
+export function formattaTempo(minutiTotali) {
     if (minutiTotali <= 0) return "";
 
     const h = Math.floor(minutiTotali / 60);

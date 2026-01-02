@@ -3,20 +3,18 @@ import { _supabase, app } from './config.js';
 let selectedIncludes = [];
 let selectedExcludes = [];
 export async function showSearch() {
-    selectedIncludes = [];
-    selectedExcludes = [];
-
-    // Mostriamo un caricamento veloce per i menu a tendina
     app.innerHTML = `<div class="loader">Preparazione filtri...</div>`;
 
     // Recuperiamo categorie e tipi di cottura esistenti
-    const [resCat, resCottura] = await Promise.all([
+    const [resCat, resCottura, resPaesi] = await Promise.all([
         _supabase.from('categorie').select('*').order('Ordine_Query'),
-        _supabase.from('ricette').select('Cottura').not('Cottura', 'is', null)
+        _supabase.from('ricette').select('Cottura').not('Cottura', 'is', null),
+        _supabase.from('ricette').select('Etnica').not('Etnica', 'is', null)
     ]);
 
-    // Pulizia Cottura (Unique values)
+    // Pulizia Cottura e Paesi (Unique values)
     const tipiCottura = [...new Set(resCottura.data.map(r => r.Cottura))].sort();
+    const paesiEtnici = [...new Set(resPaesi.data.map(r => r.Etnica))].filter(p => p && p.trim() !== "").sort();
 
     app.innerHTML = `
         <div class="search-form-container">
@@ -47,12 +45,12 @@ export async function showSearch() {
                 const macroOrdine = primoElemento.Ordine_Query.toString().charAt(0);
 
                 return `
-                                        <optgroup label="${catNome.toUpperCase()}" style="font-weight: bold;">
-                                            <option value="${macroOrdine}" style="font-weight: bold;">Tutti i ${catNome.toLowerCase()}</option>
-                                            ${gruppi[catNome].map(s => `
-                                                <option value="${s.Ordine_Query}">&nbsp;&nbsp;&nbsp;${s.Sottocategoria}</option>
-                                            `).join('')}
-                                        </optgroup>
+                                    <optgroup label="${catNome.toUpperCase()}" style="font-weight: bold;">
+                                        <option value="${macroOrdine}" style="font-weight: bold;">Tutti (${catNome.toLowerCase()})</option>
+                                        ${gruppi[catNome].map(s => `
+                                        <option value="${s.Ordine_Query}">&nbsp;&nbsp;&nbsp;${s.Sottocategoria}</option>
+                                    `).join('')}
+                                    </optgroup>
                                     `;
             }).join('');
         })()}
@@ -67,7 +65,10 @@ export async function showSearch() {
                     </div>
                     <div class="filter-group">
                         <label>Paese</label>
-                        <input type="text" id="s-etnica" placeholder="Es: Messicana, Italia...">
+                        <select id="s-paese">
+                            <option value="">Tutti i paesi</option>
+                            ${paesiEtnici.map(p => `<option value="${p}">${p}</option>`).join('')}
+                        </select>
                     </div>
                 </div>
 
@@ -159,6 +160,23 @@ export async function showSearch() {
             renderRisultati(filtrati, container);
         }
     }
+    const lastFilters = localStorage.getItem('lastFilters');
+    if (lastFilters) {
+        const f = JSON.parse(lastFilters);
+        // Ripristiniamo i valori nei campi se esistono
+        if (document.getElementById('s-titolo')) document.getElementById('s-titolo').value = f.titolo || "";
+        if (document.getElementById('s-autore')) document.getElementById('s-autore').value = f.autore || "";
+        if (document.getElementById('s-paese')) document.getElementById('s-paese').value = f.paese || "";
+        if (document.getElementById('s-categoria')) document.getElementById('s-categoria').value = f.categoria || "";
+        if (document.getElementById('s-metodo-cottura')) document.getElementById('s-metodo-cottura').value = f.cottura || "";
+        if (document.getElementById('s-tempo-cottura')) document.getElementById('s-tempo-cottura').value = f.tempo_cottura || "";
+        if (document.getElementById('s-tempo-totale')) document.getElementById('s-tempo-totale').value = f.tempo_totale || "";
+        if (document.getElementById('s-stampate')) document.getElementById('s-stampate').checked = f.stampate || false;
+        if (document.getElementById('s-voto')) document.getElementById('s-voto').value = f.voto || "0";
+
+    }
+    renderTags('include');
+    renderTags('exclude');
 }
 
 export async function eseguiRicerca() {
@@ -168,7 +186,7 @@ export async function eseguiRicerca() {
     try {
         const titolo = document.getElementById('s-titolo').value;
         const autore = document.getElementById('s-autore').value;
-        const etnica = document.getElementById('s-etnica').value;
+        const etnica = document.getElementById('s-paese').value;
         const catVal = document.getElementById('s-categoria').value; // Ordine_Query
         const metodo = document.getElementById('s-metodo-cottura').value;
         const tCotturaMax = document.getElementById('s-tempo-cottura').value;
@@ -188,7 +206,7 @@ export async function eseguiRicerca() {
         // Filtri Supabase
         if (titolo) query = query.ilike('Titolo', `%${titolo}%`);
         if (autore) query = query.ilike('Autore', `%${autore}%`);
-        if (etnica) query = query.ilike('Etnica', `%${etnica}%`);
+        if (etnica) query = query.eq('Etnica', etnica);
         if (metodo) query = query.eq('Cottura', metodo);
         if (votoMin > 0) query = query.gte('Voto', votoMin);
         if (stampate) query = query.eq('stampata', true);
@@ -211,15 +229,23 @@ export async function eseguiRicerca() {
         // Filtri Locali (Ingredienti e Tempi)
         const filtrati = data.filter(r => {
             // Filtro Tempi
-            const tCott = parseInt(r.Tempo_cottura) || 0;
-            const tTot = tCott + (parseInt(r.Tempo_preparazione) || 0) + (parseInt(r.Tempo_agg) || 0);
+            const minCottura = convertiInMinuti(r.Tempo_cottura);
+            const minPrep = convertiInMinuti(r.Tempo_preparazione);
+            const minAgg = convertiInMinuti(r.Tempo_agg);
+            const minTotale = minCottura + minPrep + minAgg;
 
             if (tCotturaMax) {
-                if (tCotturaMax == "120") { if (tCott < 60) return false; }
-                else if (tCott > parseInt(tCotturaMax)) return false;
+                const soglia = parseInt(tCotturaMax);
+                if (soglia === 120) {
+                    if (minCottura < 60) return false;
+                } else if (minCottura > soglia) {
+                    return false;
+                }
             }
-            if (tTotaleMax && tTot > parseInt(tTotaleMax)) return false;
-
+            // Filtro Tempo Totale
+            if (tTotaleMax && minTotale > parseInt(tTotaleMax)) {
+                return false;
+            }
             // Altri filtri già esistenti
             const idsPresenti = (r.ingredienti_ricette || []).map(ir => Number(ir.fkIngrediente));
             if (selectedExcludes.some(ex => idsPresenti.includes(Number(ex.id)))) return false;
@@ -232,12 +258,26 @@ export async function eseguiRicerca() {
             return true;
         });
         localStorage.setItem('lastSearch', JSON.stringify(filtrati)); // Salva i risultati
+        // salva i filtri impostati
+        const filtriDaSalvare = {
+            titolo: document.getElementById('s-titolo').value,
+            autore: document.getElementById('s-autore').value,
+            categoria: document.getElementById('s-categoria').value,
+            paese: document.getElementById('s-paese').value,
+            cottura: document.getElementById('s-metodo-cottura').value,
+            tempo_cottura: document.getElementById('s-tempo-cottura').value,
+            tempo_totale: document.getElementById('s-tempo-totale').value,
+            stampate: document.getElementById('s-stampate').checked,
+            voto: document.getElementById('s-voto').value
+        };
+        localStorage.setItem('lastFilters', JSON.stringify(filtriDaSalvare));
         renderRisultati(filtrati, container);
 
     } catch (err) {
         console.error(err);
         container.innerHTML = "<p>Errore durante la ricerca.</p>";
     }
+
 }
 
 function renderRisultati(filtrati, container) {
@@ -362,4 +402,12 @@ export function renderTags(type) {
             <span class="tag-remove" onclick="removeTag(${t.id}, '${type}')">✖</span>
         </span>
     `).join('');
+}
+
+export function clearSearch() {
+    localStorage.removeItem('lastSearch');
+    localStorage.setItem('lastFilters', JSON.stringify({}));
+    // Se vuoi resettare anche gli ingredienti:
+    selectedIncludes = [];
+    selectedExcludes = [];
 }

@@ -10,6 +10,7 @@
 - mettere online e testare con cellulare
 - spostare campo immagine sotto titolo vicino a preparazione
 - filtro per ricette che non hanno foto 
+- ricerca mettere menu a tendina dei paesi (filtra direttamente con distinct quelli che hai in db)
 
 per avviare il server locale:
 python3 -m http.server 8000

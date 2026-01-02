@@ -1,9 +1,9 @@
 // 1. Importa le funzioni dai tuoi file
-import { renderDifficolta, renderStars, generaStelline, aggiornaVoto, renderRecipeCard } from './ui.js';
+import { renderDifficolta, renderStars, generaStelline, aggiornaVoto, renderRecipeCard, convertiInMinuti, formattaTempo } from './ui.js';
 import { showHome } from './home.js';
 import { showLatest } from './recenti.js';
 import { showRicetta, saveComment } from './ricetta.js';
-import { showSearch, handleIngSearch, addTag, removeTag, openQtaPrompt, eseguiRicerca, renderTags } from './ricerca.js';
+import { showSearch, handleIngSearch, addTag, removeTag, openQtaPrompt, eseguiRicerca, renderTags, clearSearch } from './ricerca.js';
 import { _supabase } from './config.js';
 
 // 2. Rendile "Globali" (Parte A della mia risposta precedente)
@@ -18,6 +18,8 @@ window.showRicetta = showRicetta;
 window.saveComment = saveComment;
 window.aggiornaVoto = aggiornaVoto;
 window.renderRecipeCard = renderRecipeCard;
+window.convertiInMinuti = convertiInMinuti;
+window.formattaTempo = formattaTempo;
 
 window.showSearch = showSearch;
 window.handleIngSearch = handleIngSearch;
@@ -26,6 +28,7 @@ window.removeTag = removeTag;
 window.openQtaPrompt = openQtaPrompt;
 window.eseguiRicerca = eseguiRicerca;
 window.renderTags = renderTags;
+window.clearSearch = clearSearch;
 
 // Cosa succede quando l'utente preme Indietro o F5
 window.onpopstate = () => gestisciPercorso();
@@ -49,7 +52,10 @@ window.naviga = (sezione, id = null) => {
         // Smista la chiamata alla funzione corretta
         if (sezione === 'home') showHome();
         if (sezione === 'recenti') showLatest();
-        if (sezione === 'ricerca') showSearch();
+        if (sezione === 'ricerca') {
+            clearSearch();
+            showSearch();
+        }
     }
 };
 

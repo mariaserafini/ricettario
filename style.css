@@ -41,6 +41,20 @@ body {
     cursor: pointer;
 }
 
+.logo a {
+    text-decoration: none;
+    /* Rimuove la sottolineatura */
+    color: inherit;
+    /* Eredita il colore dal padre (.logo), evitando il blu */
+    display: inline-block;
+    /* Opzionale: aiuta a gestire meglio lo spazio cliccabile */
+}
+
+/* Opzionale: mantiene il colore corretto anche quando il link è già stato visitato */
+.logo a:visited {
+    color: inherit;
+}
+
 .menu {
     display: flex;
     list-style: none;
@@ -614,36 +628,21 @@ body {
     margin: 0;
 }
 
-/* Riga Top (Info e Immagine) */
-.recipe-top-row {
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
-    margin-bottom: 20px;
-    background: white;
-    padding: 15px;
-    border-radius: var(--radius);
-    justify-content: flex-end;
-}
-
-.recipe-info-badges {
-    flex: 1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
 
 .recipe-main-image {
-    flex: 1;
-    text-align: right;
+    display: flex;
+    justify-content: flex-end;
+    flex-shrink: 0;
 }
 
 /* Evita che l'immagine diventi troppo grande e rubi spazio alla preparazione */
 .recipe-main-image img {
-    max-width: 200px;
+    max-width: 150px;
     /* Ridotto per lasciare spazio ai badge e alla prep */
     height: auto;
     border-radius: var(--radius);
+    display: block;
+    object-fit: cover;
 }
 
 /* --- 1. GRIGLIA CARD (Home e Recenti) --- */
@@ -769,6 +768,64 @@ body {
     background-color: #ff6b81;
 }
 
+input.no-arrows::-webkit-outer-spin-button,
+input.no-arrows::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.input-dose,
+#input-porzioni {
+    border: 1px solid #ff4757;
+    border-radius: 4px;
+    padding: 2px 5px;
+    text-align: center;
+    background: #fff;
+    font-weight: bold;
+    color: #ff4757;
+    width: 60px;
+}
+
+
+.recipe-info-badges {
+    display: flex;
+    flex-direction: column;
+    /* Forza le righe una sotto l'altra */
+    gap: 12px;
+    /* Spazio tra la riga 1 e la riga 2 */
+    flex: 1;
+    /* Prende lo spazio necessario a sinistra dell'immagine */
+}
+
+
+/* Ogni singola riga di badge */
+.badges-row {
+    display: flex;
+    flex-wrap: wrap;
+    /* Se lo schermo è piccolo, i badge vanno a capo dolcemente */
+    gap: 8px;
+    /* Spazio tra un badge e l'altro nella stessa riga */
+}
+
+/* La riga che contiene badge + immagine */
+.recipe-top-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 25px;
+    gap: 20px;
+    background: white;
+    padding: 15px;
+    border-radius: var(--radius);
+}
+
+/* Stile opzionale per differenziare i badge del tempo */
+.badge-time {
+    background-color: #e8f4fd !important;
+    /* Un azzurrino leggero o un altro colore a tua scelta */
+    color: #2980b9 !important;
+    border: 1px solid #d1e9f9;
+}
 
 /* Responsive - lasciare sempre in fondo*/
 
@@ -836,4 +893,27 @@ body {
     .recipe-header-centered {
         flex-direction: column !important;
     }
+}
+
+
+
+
+/* --- FINE STYLE.CSS --- */
+
+
+
+/* Contenitore immagine: si stringe attorno alla foto e si ancora a destra */
+.recipe-main-image {
+    flex-shrink: 0;
+    /* Impedisce alla colonna dell'immagine di allargarsi inutilmente */
+    display: flex;
+    justify-content: flex-end;
+}
+
+.recipe-main-image img {
+    max-width: 200px;
+    height: auto;
+    border-radius: var(--radius);
+    object-fit: cover;
+    display: block;
 }
