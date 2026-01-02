@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Il Mio Ricettario</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module" src="js/main.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">Database Ricette</div>
+        <ul class="menu">
+            <li><a href="#" onclick="naviga('home')">Home</a></li>
+            <li><a href="#" onclick="naviga('recenti')">Recenti</a></li>
+            <li><a href="#" onclick="naviga('ricerca')">Ricerca</a></li>
+        </ul>
+    </nav>
+
+    <main id="app">
+        <div id="loader">Caricamento...</div>
+    </main>
+</body>
+
+</html>
