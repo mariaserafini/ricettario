@@ -1,0 +1,18 @@
+- dosi
+- inserimento "normale"
+- modifica
+- collega con altre
+- clona  ricetta
+- inserimento "veloce" da testo o da foto o da url
+- bottone nascondi ricetta se non interessa
+- menu settimanale
+- inserisci ingrediente
+- mettere online e testare con cellulare
+- spostare campo immagine sotto titolo vicino a preparazione
+- filtro per ricette che non hanno foto 
+
+per avviare il server locale:
+python3 -m http.server 8000
+
+
+
