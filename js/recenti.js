@@ -8,8 +8,8 @@ export async function showLatest() {
 
     const { data: ultimeRicette, error } = await _supabase
         .from('ricette')
-        .select(`pkRicetta, Titolo, Autore, Voto, Immagine, Data, Tempo_cottura, Tempo_preparazione, Tempo_agg, Immagine, categorie(Categoria)`)
-        .order('Data', { ascending: false })
+        .select(`pk_ricetta, titolo, autore, voto, immagine, data, tempo_cottura, tempo_preparazione, tempo_agg, immagine, categorie(categoria)`)
+        .order('data', { ascending: false })
         .limit(36);
 
     if (error) {

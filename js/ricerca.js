@@ -7,14 +7,14 @@ export async function showSearch() {
 
     // Recuperiamo categorie e tipi di cottura esistenti
     const [resCat, resCottura, resPaesi] = await Promise.all([
-        _supabase.from('categorie').select('*').order('Ordine_Query'),
-        _supabase.from('ricette').select('Cottura').not('Cottura', 'is', null),
-        _supabase.from('ricette').select('Etnica').not('Etnica', 'is', null)
+        _supabase.from('categorie').select('*').order('ordine_query'),
+        _supabase.from('ricette').select('cottura').not('cottura', 'is', null),
+        _supabase.from('ricette').select('etnica').not('etnica', 'is', null)
     ]);
 
     // Pulizia Cottura e Paesi (Unique values)
-    const tipiCottura = [...new Set(resCottura.data.map(r => r.Cottura))].sort();
-    const paesiEtnici = [...new Set(resPaesi.data.map(r => r.Etnica))].filter(p => p && p.trim() !== "").sort();
+    const tipiCottura = [...new Set(resCottura.data.map(r => r.cottura))].sort();
+    const paesiEtnici = [...new Set(resPaesi.data.map(r => r.etnica))].filter(p => p && p.trim() !== "").sort();
 
     app.innerHTML = `
         <div class="search-form-container">
@@ -36,19 +36,19 @@ export async function showSearch() {
                             ${(() => {
             const gruppi = {};
             resCat.data.forEach(c => {
-                if (!gruppi[c.Categoria]) gruppi[c.Categoria] = [];
-                if (c.Sottocategoria) gruppi[c.Categoria].push(c);
+                if (!gruppi[c.categoria]) gruppi[c.categoria] = [];
+                if (c.sottocategoria) gruppi[c.categoria].push(c);
             });
 
             return Object.keys(gruppi).map(catNome => {
-                const primoElemento = resCat.data.find(x => x.Categoria === catNome);
-                const macroOrdine = primoElemento.Ordine_Query.toString().charAt(0);
+                const primoElemento = resCat.data.find(x => x.categoria === catNome);
+                const macroOrdine = primoElemento.ordine_query.toString().charAt(0);
 
                 return `
                                     <optgroup label="${catNome.toUpperCase()}" style="font-weight: bold;">
                                         <option value="${macroOrdine}" style="font-weight: bold;">Tutti (${catNome.toLowerCase()})</option>
                                         ${gruppi[catNome].map(s => `
-                                        <option value="${s.Ordine_Query}">&nbsp;&nbsp;&nbsp;${s.Sottocategoria}</option>
+                                        <option value="${s.ordine_query}">&nbsp;&nbsp;&nbsp;${s.sottocategoria}</option>
                                     `).join('')}
                                     </optgroup>
                                     `;
@@ -197,29 +197,30 @@ export async function eseguiRicerca() {
         let query = _supabase
             .from('ricette')
             .select(`
-                pkRicetta, Titolo, Autore, Voto, Immagine, Cottura, Etnica, stampata,
-                Tempo_cottura, Tempo_preparazione, Tempo_agg,
-                categorie!inner(Categoria, Sottocategoria, Ordine_Query),
-                ingredienti_ricette(fkIngrediente, Quant)
-            `);
+                pk_ricetta, titolo, autore, voto, immagine, cottura, etnica, stampata,
+                tempo_cottura, tempo_preparazione, tempo_agg,
+                categorie!inner(categoria, sottocategoria, ordine_query),
+                ingredienti_ricette(fk_ingrediente, quant)
+            `)
+            .order('titolo', { ascending: true });
 
         // Filtri Supabase
-        if (titolo) query = query.ilike('Titolo', `%${titolo}%`);
-        if (autore) query = query.ilike('Autore', `%${autore}%`);
-        if (etnica) query = query.eq('Etnica', etnica);
-        if (metodo) query = query.eq('Cottura', metodo);
-        if (votoMin > 0) query = query.gte('Voto', votoMin);
+        if (titolo) query = query.ilike('titolo', `%${titolo}%`);
+        if (autore) query = query.ilike('autore', `%${autore}%`);
+        if (etnica) query = query.eq('etnica', etnica);
+        if (metodo) query = query.eq('cottura', metodo);
+        if (votoMin > 0) query = query.gte('voto', votoMin);
         if (stampate) query = query.eq('stampata', true);
 
         // Logica Categoria (Ordine_Query)
         if (catVal) {
             if (catVal.length === 1) {
                 // È una macro categoria (es. "6"), cerchiamo tutte quelle che iniziano con 6
-                query = query.gte('categorie.Ordine_Query', parseInt(catVal * 10))
-                    .lt('categorie.Ordine_Query', parseInt((parseInt(catVal) + 1) * 10));
+                query = query.gte('categorie.ordine_query', parseInt(catVal * 10))
+                    .lt('categorie.ordine_query', parseInt((parseInt(catVal) + 1) * 10));
             } else {
                 // È una sottocategoria specifica (es. "63")
-                query = query.eq('categorie.Ordine_Query', catVal);
+                query = query.eq('categorie.ordine_query', catVal);
             }
         }
 
@@ -229,9 +230,9 @@ export async function eseguiRicerca() {
         // Filtri Locali (Ingredienti e Tempi)
         const filtrati = data.filter(r => {
             // Filtro Tempi
-            const minCottura = convertiInMinuti(r.Tempo_cottura);
-            const minPrep = convertiInMinuti(r.Tempo_preparazione);
-            const minAgg = convertiInMinuti(r.Tempo_agg);
+            const minCottura = convertiInMinuti(r.tempo_cottura);
+            const minPrep = convertiInMinuti(r.tempo_preparazione);
+            const minAgg = convertiInMinuti(r.tempo_agg);
             const minTotale = minCottura + minPrep + minAgg;
 
             if (tCotturaMax) {
@@ -247,13 +248,13 @@ export async function eseguiRicerca() {
                 return false;
             }
             // Altri filtri già esistenti
-            const idsPresenti = (r.ingredienti_ricette || []).map(ir => Number(ir.fkIngrediente));
+            const idsPresenti = (r.ingredienti_ricette || []).map(ir => Number(ir.fk_ingrediente));
             if (selectedExcludes.some(ex => idsPresenti.includes(Number(ex.id)))) return false;
             for (let inc of selectedIncludes) {
-                const trovato = r.ingredienti_ricette?.find(ir => Number(ir.fkIngrediente) === Number(inc.id));
+                const trovato = r.ingredienti_ricette?.find(ir => Number(ir.fk_ingrediente) === Number(inc.id));
                 if (!trovato) return false;
-                if (inc.qMin !== null && trovato.Quant < inc.qMin) return false;
-                if (inc.qMax !== null && trovato.Quant > inc.qMax) return false;
+                if (inc.qMin !== null && trovato.quant < inc.qMin) return false;
+                if (inc.qMax !== null && trovato.quant > inc.qMax) return false;
             }
             return true;
         });
@@ -289,8 +290,8 @@ function renderRisultati(filtrati, container) {
     const gruppi = {};
     filtrati.forEach(r => {
         // Estraiamo il nome della categoria e l'ordine
-        const catNome = r.categorie?.Categoria || 'Altro';
-        const catOrdine = r.categorie?.Ordine_Query || 999;
+        const catNome = r.categorie?.categoria || 'Altro';
+        const catOrdine = r.categorie?.ordine_query || 999;
 
         if (!gruppi[catNome]) {
             gruppi[catNome] = {
@@ -333,12 +334,12 @@ export async function handleIngSearch(input, type) {
     const resDiv = document.getElementById(`res-${type}`);
     if (query.length < 2) { resDiv.innerHTML = ''; return; }
 
-    const { data } = await _supabase.from('ingredienti').select('*').ilike('Ingrediente', `%${query}%`).limit(10);
+    const { data } = await _supabase.from('ingredienti').select('*').ilike('ingrediente', `%${query}%`).limit(10);
 
     // Usiamo le virgolette doppie per l'HTML e le singole con escape per il JS
     resDiv.innerHTML = data.map(i => {
-        const nomePulito = i.Ingrediente.replace(/'/g, "\\'");
-        return `<div class="suggestion-item" onclick="addTag(${i.pkIngrediente}, '${nomePulito}', '${type}')">${i.Ingrediente}</div>`;
+        const nomePulito = i.ingrediente.replace(/'/g, "\\'");
+        return `<div class="suggestion-item" onclick="addTag(${i.pk_ingrediente}, '${nomePulito}', '${type}')">${i.ingrediente}</div>`;
     }).join('');
 }
 

@@ -14,8 +14,8 @@ export async function showRicetta(id) {
     app.innerHTML = '<div class="loader">Caricamento ricetta...</div>';
     const { data: r, error } = await _supabase
         .from('ricette')
-        .select(`*, categorie(Categoria, Sottocategoria), ingredienti_ricette(Quant, Dettagli, ingredienti(Ingrediente), misure(Misura)), commenti(Commento, Autore, Data)`)
-        .eq('pkRicetta', id)
+        .select(`*, categorie(categoria, sottocategoria), ingredienti_ricette(quant, dettagli, ingredienti(ingrediente), misure(misura)), commenti(contenuto, autore, data_commento)`)
+        .eq('pk_ricetta', id)
         .single();
 
     if (error) {
@@ -23,8 +23,8 @@ export async function showRicetta(id) {
         return;
     }
 
-    const portata = r.categorie?.Sottocategoria || r.categorie?.Categoria || 'N/A';
-    const immagineUrl = r.Immagine || 'https://via.placeholder.com/400x300?text=Senza+Foto';
+    const portata = r.categorie?.sottocategoria || r.categorie?.categoria || 'N/A';
+    const immagineUrl = r.immagine || 'https://via.placeholder.com/400x300?text=Senza+Foto';
     // Funzione interna per formattare i tempi HH:MM:SS in modo leggibile
     const formatTime = (t) => {
         if (!t || t === "00:00:00") return null;
@@ -35,9 +35,9 @@ export async function showRicetta(id) {
         return `${m}min`;
     };
 
-    const tPrep = formatTime(r.Tempo_preparazione);
-    const tCott = formatTime(r.Tempo_cottura);
-    const tAgg = formatTime(r.Tempo_agg);
+    const tPrep = formatTime(r.tempo_preparazione);
+    const tCott = formatTime(r.tempo_cottura);
+    const tAgg = formatTime(r.tempo_agg);
 
     app.innerHTML = `
     <div class="recipe-page-wrapper">
@@ -50,16 +50,16 @@ export async function showRicetta(id) {
             <button class="btn-action-nav btn-delete">🗑️ Elimina</button>
             </div>
             <button class="btn-print-text" onclick="copiaVersioneTesto()">📋 Copia Testo</button>
-            <button class="btn-action-stampata ${r.stampata ? 'already-printed' : ''}" 
-                    onclick="segnaComeStampata(${r.pkRicetta}, ${r.stampata})">
-                <span>${r.stampata ? '✅' : '🖨️'}</span> 
-                ${r.stampata ? 'Rimuovi da Stampate' : 'Segna come Stampata'}
-            </button>
+           <button class="btn-action-stampata ${r.stampata ? 'already-printed' : ''}" 
+        onclick="segnaComeStampata(${r.pk_ricetta})">
+    <span>${r.stampata ? '✅' : '🖨️'}</span> 
+    ${r.stampata ? 'Rimuovi da Stampate' : 'Segna come Stampata'}
+</button>
         </div>
 
         <div class="recipe-header-centered">
-            <h1>${r.Titolo} ${r.Etnica ? `<small>(${r.Etnica})</small>` : ''}</h1>
-            <div id="rating-area" class="interactive-rating">${renderStars(r.Voto, r.pkRicetta)}</div>
+            <h1>${r.titolo} ${r.etnica ? `<small>(${r.etnica})</small>` : ''}</h1>
+            <div id="rating-area" class="interactive-rating">${renderStars(r.voto, r.pk_ricetta)}</div>
         </div>
 
         <div class="recipe-grid-layout">
@@ -67,20 +67,20 @@ export async function showRicetta(id) {
                 <div class="ingredients-box">
                     <h3>Ingredienti</h3>
                     <div id="display-porzioni" style="margin-bottom: 15px; font-size: 0.9rem; color: #666;">
-                        <strong>Dosi per:</strong> <span>${r.N_porzioni || 4}</span> persone
+                        <strong>Dosi per:</strong> <span>${r.n_porzioni || 4}</span> persone
                     </div>
                     <ul class="ingredients-list" id="lista-ingredienti">
                         ${r.ingredienti_ricette.map((ing, index) => `
                             <li class="ingredient-item">
                                 <span class="qty-wrapper">
-                                    <strong class="qty-value" data-base="${ing.Quant || ''}">${ing.Quant || ''}</strong>
+                                    <strong class="qty-value" data-base="${ing.quant || ''}">${ing.quant || ''}</strong>
                                 </span>
-                                <strong>${ing.misure?.Misura || ''}</strong> 
-                                ${ing.ingredienti?.Ingrediente}
+                                <strong>${ing.misure?.misura || ''}</strong> 
+                                ${ing.ingredienti?.ingrediente}
                             </li>
                         `).join('')}
                     </ul>
-                    <button class="btn-portions" id="btn-modifica-dosi" onclick="attivaModificaDosi(${r.N_porzioni || 4})">
+                    <button class="btn-portions" id="btn-modifica-dosi" onclick="attivaModificaDosi(${r.n_porzioni || 4})">
                         ⚖️ Modifica Dosi
                     </button>
                 </div>
@@ -88,7 +88,7 @@ export async function showRicetta(id) {
                     <h4>Aggiungi Commento</h4>
                     <input type="text" id="new-comment-author" placeholder="Tuo nome..." value = "Meri">
                     <textarea id="new-comment-text" placeholder="Scrivi qui..."></textarea>
-                    <button class="btn-comment" onclick="saveComment(${r.pkRicetta})">Salva Nota</button>
+                    <button class="btn-comment" onclick="saveComment(${r.pk_ricetta})">Salva Commento</button>
                 </div>
             </aside>
 
@@ -97,8 +97,8 @@ export async function showRicetta(id) {
                 <div class="recipe-info-badges">
                     <div class="badges-row">
                         <span class="badge">📂 ${portata}</span>
-                        <span class="badge">🔥 ${r.Cottura || 'N/A'}</span>
-                        <span class="badge">📊 Diff: ${renderDifficolta(r.Diff)}</span>
+                        <span class="badge">🔥 ${r.cottura || 'N/A'}</span>
+                        <span class="badge">📊 Diff: ${renderDifficolta(r.diff)}</span>
                     </div>
                     <div class="badges-row">
                         ${tPrep && tPrep !== '0' ? `<span class="badge badge-time">🥣 ${tPrep}</span>` : ''}
@@ -107,44 +107,48 @@ export async function showRicetta(id) {
                     </div>   
                 </div>
                 <div class="recipe-main-image">
-                    <img src="${immagineUrl}" alt="${r.Titolo}" style="max-width: 200px; height: auto;">
+                    <img src="${immagineUrl}" alt="${r.titolo}" style="max-width: 200px; height: auto;">
                 </div>
             </div>
 
             <div class="execution-box">
                 <h3>Preparazione</h3>
-                <p id="exec-to-copy">${r.Esecuzione}</p>
+                <p id="exec-to-copy">${r.esecuzione}</p>
             </div>
 
                 <div class="recipe-footer-meta">
-                    <p><strong>Autore:</strong> ${r.Autore} | <strong>Data:</strong> ${new Date(r.Data).toLocaleDateString('it-IT')}</p>
+                    <p><strong>Autore:</strong> ${r.autore} | <strong>Data:</strong> ${new Date(r.data).toLocaleDateString('it-IT')}</p>
                 </div>
                 
                 <div class="comments-section">
                     <h3>Commenti</h3>
                     <div class="comments-list">
-                        ${r.commenti.map(c => `
+                    ${r.commenti && r.commenti.length > 0
+            ? r.commenti.map(c => `
                             <div class="comment-card-aside" style="background: #fff; margin-bottom: 10px; padding: 10px; border-left: 4px solid orange;">
-                                <p>"${c.Commento}"</p>
-                                <small>${c.Autore} - ${new Date(c.Data).toLocaleDateString()}</small>
+                                <p>"${c.contenuto}"</p>
+                                <small>${c.autore} - ${new Date(c.data_commento).toLocaleDateString()}</small>
                             </div>
-                        `).join('')}
-                    </div>
-                </div>
-            </main>
-        </div>
-    </div>`;
+                            `).join('')
+            : '<p style="color: #666; font-style: italic;">Ancora nessun commento.</p>'
+        }
+                    </div >
+                </div >
+            </main >
+        </div >
+    </div > `;
 }
 
 // Funzione per generare una versione testuale pulita e copiarla negli appunti
 function copiaVersioneTesto() {
-    const titolo = document.querySelector('.recipe-header h1').innerText.replace('🖨️', '').trim();
+    const titoloEl = document.querySelector('.recipe-header-centered h1');
+    const titolo = titoloEl ? titoloEl.innerText.trim() : "Ricetta";
     const ingredienti = Array.from(document.querySelectorAll('.ingredient-item'))
         .map(el => "- " + el.innerText.replace(/\s+/g, ' ').trim())
         .join('\n');
     const esecuzione = document.getElementById('exec-to-copy').innerText;
 
-    const testoFinale = `📖 ${titolo}\n\n🛒 INGREDIENTI:\n${ingredienti}\n\n👨‍🍳 PREPARAZIONE:\n${esecuzione}`;
+    const testoFinale = `📖 ${titolo} \n\n🛒 INGREDIENTI: \n${ingredienti} \n\n👨‍🍳 PREPARAZIONE: \n${esecuzione} `;
 
     navigator.clipboard.writeText(testoFinale).then(() => {
         alert("Versione testuale copiata negli appunti!");
@@ -155,23 +159,41 @@ export async function saveComment(idRicetta) {
     const autore = document.getElementById('new-comment-author').value;
     const testo = document.getElementById('new-comment-text').value;
     if (!testo || !autore) { alert("Inserisci nome e commento!"); return; }
-    const { error } = await _supabase.from('commenti').insert([{ fkRicetta: idRicetta, Autore: autore, Commento: testo, Data: new Date().toISOString() }]);
+    const { error } = await _supabase.from('commenti').insert([{ fk_ricetta: idRicetta, autore: autore, contenuto: testo, data_commento: new Date().toISOString() }]);
     if (error) alert("Errore: " + error.message);
     else { document.getElementById('new-comment-text').value = ''; showRicetta(idRicetta); }
 }
 
-export async function segnaComeStampata(id, statoAttuale) {
-    const nuovoStato = !statoAttuale;
+export async function segnaComeStampata(id) {
+    // 1. Preleviamo lo stato attuale direttamente dal DB per essere sicuri al 100%
+    const { data: ricetta } = await _supabase
+        .from('ricette')
+        .select('stampata')
+        .eq('pk_ricetta', id)
+        .single();
+
+    // 2. Invertiamo lo stato recuperato dal DB
+    const nuovoStato = !ricetta.stampata;
+
+    // 3. Eseguiamo l'aggiornamento
     const { error } = await _supabase
         .from('ricette')
         .update({ stampata: nuovoStato })
-        .eq('pkRicetta', id);
+        .eq('pk_ricetta', id);
 
     if (error) {
         alert("Errore nell'aggiornamento: " + error.message);
     } else {
-        // Ricarichiamo la ricetta per aggiornare l'interfaccia
-        showRicetta(id);
+        // 4. Invece di ricaricare tutto, cambiamo solo l'aspetto del tasto al volo
+        // Questo garantisce che l'utente veda subito il cambio senza attendere ricaricamenti
+        const btn = document.querySelector('.btn-action-stampata');
+        if (btn) {
+            btn.classList.toggle('already-printed', nuovoStato);
+            btn.innerHTML = `< span > ${nuovoStato ? '✅' : '🖨️'}</span > ${nuovoStato ? 'Rimuovi da Stampate' : 'Segna come Stampata'} `;
+
+            // Aggiorniamo l'attributo onclick per il click successivo
+            btn.setAttribute('onclick', `segnaComeStampata(${id})`);
+        }
     }
 }
 
@@ -213,8 +235,8 @@ window.attivaModificaDosi = (porzioniOriginali) => {
         const divPorzioni = document.createElement('div');
         divPorzioni.className = "portions-edit-area";
         divPorzioni.innerHTML = `
-            <p style="margin: 10px 0; font-size: 0.9rem; font-weight: bold;">
-                Porzioni: <input type="number" id="input-porzioni" class="no-arrows" value="${porzioniOriginali}" 
+        < p style = "margin: 10px 0; font-size: 0.9rem; font-weight: bold;" >
+            Porzioni: <input type="number" id="input-porzioni" class="no-arrows" value="${porzioniOriginali}"
                 onkeydown="if(event.key==='Enter') { this.blur(); }"
                 onblur="ricalcolaDaPorzioni(this.value, ${porzioniOriginali})">
             </p>`;

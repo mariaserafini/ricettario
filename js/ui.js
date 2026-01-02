@@ -25,8 +25,8 @@ export function generaStelline(voto) {
 export async function aggiornaVoto(id, nuovoVoto) {
     const { error } = await _supabase
         .from('ricette')
-        .update({ Voto: nuovoVoto })
-        .eq('pkRicetta', id);
+        .update({ voto: nuovoVoto })
+        .eq('pk_ricetta', id);
 
     if (error) {
         alert("Errore: " + error.message);
@@ -65,36 +65,34 @@ export function formattaTempo(minutiTotali) {
 }
 
 export function renderRecipeCard(r) {
-    const catBase = r.categorie?.Categoria || 'Ricetta';
-    const sottoCat = r.categorie?.Sottocategoria;
+    const catBase = r.categorie?.categoria || 'Ricetta';
+    const sottoCat = r.categorie?.sottocategoria;
     const categoriaVisualizzata = sottoCat ? `${catBase}: ${sottoCat}` : catBase;
-    const isTested = r.Voto > 0;
 
-    const tCott = convertiInMinuti(r.Tempo_cottura);
-    const tPrep = convertiInMinuti(r.Tempo_preparazione);
-    const tAgg = convertiInMinuti(r.Tempo_agg);
+    const tCott = convertiInMinuti(r.tempo_cottura);
+    const tPrep = convertiInMinuti(r.tempo_preparazione);
+    const tAgg = convertiInMinuti(r.tempo_agg);
     const minutiTotali = tCott + tPrep + tAgg;
     const tempoVisualizzato = formattaTempo(minutiTotali);
 
     // Verifichiamo se l'immagine esiste davvero
-    const haImmagine = r.Immagine && r.Immagine.trim() !== "";
-    const immagineUrl = haImmagine ? r.Immagine : '';
+    const haImmagine = r.immagine && r.immagine.trim() !== "";
+    const immagineUrl = haImmagine ? r.immagine : '';
 
     return `
-        <a href="?id=${r.pkRicetta}" class="recipe-card ${!haImmagine ? 'no-image' : ''}" 
-           onclick="if(!event.ctrlKey && !event.metaKey && event.button !== 1) { event.preventDefault(); naviga('ricetta', ${r.pkRicetta}); }">
+        <a href="?id=${r.pk_ricetta}" class="recipe-card ${!haImmagine ? 'no-image' : ''}" 
+           onclick="if(!event.ctrlKey && !event.metaKey && event.button !== 1) { event.preventDefault(); naviga('ricetta', ${r.pk_ricetta}); }">
             <div class="card-image-container">
-                ${haImmagine ? `<img src="${immagineUrl}" alt="${r.Titolo}" class="card-img">` : ''}
+                ${haImmagine ? `<img src="${immagineUrl}" alt="${r.titolo}" class="card-img">` : ''}
                 <span class="category-label">${categoriaVisualizzata}</span>
-                ${isTested ? '<span class="tested-badge">✅</span>' : ''}
             </div>
             <div class="card-body">
-                <h3>${r.Titolo}</h3>
-                <div class="rating-stars">${generaStelline(r.Voto)}</div>
+                <h3>${r.titolo}</h3>
+                <div class="rating-stars">${generaStelline(r.voto)}</div>
                 
                 <div class="card-footer-info">
                     ${minutiTotali > 0 ? `<span class="time-info">🕒 ${tempoVisualizzato}</span>` : '<span></span>'}
-                    ${r.Autore ? `<span class="author-info">di ${r.Autore}</span>` : ''}
+                    ${r.autore ? `<span class="author-info">di ${r.autore}</span>` : ''}
                 </div>
             </div>
         </a>
