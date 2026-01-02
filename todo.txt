@@ -15,4 +15,57 @@ per avviare il server locale:
 python3 -m http.server 8000
 
 
+/* per la modifica in ricetta.js*/
+export async function salvaModifiche(id) {
+    const nuovoTitolo = document.getElementById('edit-titolo').value;
+    const nuovaEsecuzione = document.getElementById('edit-esec').value;
 
+    const { error } = await _supabase
+        .from('ricette')
+        .update({ 
+            Titolo: nuovoTitolo, 
+            Esecuzione: nuovaEsecuzione 
+        })
+        .eq('pkRicetta', id);
+
+    if (error) {
+        alert("Errore durante il salvataggio: " + error.message);
+    } else {
+        alert("Ricetta aggiornata con successo!");
+        showRicetta(id); // Ricarica la pagina in modalità visualizzazione
+    }
+}
+
+window.abilitaModifica = () => {
+    // Trasforma il Titolo in un input
+    const titoloVal = document.getElementById('view-titolo').innerText;
+    document.getElementById('view-titolo').innerHTML = `<input type="text" id="edit-titolo" value="${titoloVal}" class="input-edit-title">`;
+
+    // Trasforma la Preparazione in una textarea
+    const esecBox = document.querySelector('.execution-box p');
+    const esecVal = esecBox.innerText;
+    esecBox.parentElement.innerHTML = `<h3>Preparazione</h3><textarea id="edit-esec" class="textarea-edit">${esecVal}</textarea>`;
+
+    // Cambia il tasto Modifica in Salva
+    const btn = document.getElementById('btn-edit');
+    btn.innerHTML = "💾 Salva";
+    btn.onclick = salvaModifiche;
+    btn.classList.add('btn-save');
+};
+
+
+/* in main.js */
+window.salvaModifiche = salvaModifiche;
+
+Passaggio C: Policy di Update su Supabase (Fondamentale!)
+Prima di poter salvare, devi andare su Supabase:
+
+Vai in Authentication -> Policies.
+
+Tabella ricette -> New Policy.
+
+Scegli "Enable update for all users" (o crea una custom con operazione UPDATE).
+
+In Check Expression, scrivi true.
+
+Salva.
