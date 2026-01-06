@@ -3,6 +3,7 @@
  */
 import { _supabase, app } from './config.js';
 import { renderDifficolta, renderStars } from './ui.js';
+import { showForm } from './form-ricetta.js';
 
 export async function showRicetta(id) {
     const newUrl = window.location.origin + window.location.pathname + '?id=' + id;
@@ -10,12 +11,19 @@ export async function showRicetta(id) {
     window.saveComment = saveComment;
     window.copiaVersioneTesto = copiaVersioneTesto;
     window.segnaComeStampata = segnaComeStampata;
+    window.editRicetta = () => showForm(id);
+    window.eliminaRicetta = () => eliminaRicetta(id);
 
     app.innerHTML = '<div class="loader">Caricamento ricetta...</div>';
     const { data: r, error } = await _supabase
         .from('ricette')
         .select(`*, categorie(categoria, sottocategoria), ingredienti_ricette(quant, dettagli, ingredienti(ingrediente), misure(misura)), commenti(contenuto, autore, data_commento)`)
         .eq('pk_ricetta', id)
+        .order('quant', {
+            foreignTable: 'ingredienti_ricette',
+            ascending: false,
+            nullsFirst: false
+        })
         .single();
 
     if (error) {
@@ -31,7 +39,8 @@ export async function showRicetta(id) {
         const parti = t.split(':');
         const h = parseInt(parti[0]);
         const m = parseInt(parti[1]);
-        if (h > 0) return `${h}h ${m}min`;
+        if (h > 0 && m > 0) return `${h}h ${m}min`;
+        if (h > 0) return `${h}h`;
         return `${m}min`;
     };
 
@@ -44,10 +53,10 @@ export async function showRicetta(id) {
         <div class="nav-actions">
             <button class="btn-back" onclick="history.back()">← Torna Indietro</button>
             <div>
-            <button class="btn-action-nav">✏️ Modifica</button>
+            <button class="btn-action-nav" onclick="editRicetta()">✏️ Modifica</button>
             <button class="btn-action-nav">🔗 Collega</button>
             <button class="btn-action-nav">📋 Clona</button>
-            <button class="btn-action-nav btn-delete">🗑️ Elimina</button>
+            <button class="btn-action-nav btn-delete" onclick="eliminaRicetta()">🗑️ Elimina</button>
             </div>
             <button class="btn-print-text" onclick="copiaVersioneTesto()">📋 Copia Testo</button>
            <button class="btn-action-stampata ${r.stampata ? 'already-printed' : ''}" 
@@ -81,7 +90,7 @@ export async function showRicetta(id) {
                 <div class="ingredients-box">
                     <h3>Ingredienti</h3>
                     <div id="display-porzioni" style="margin-bottom: 15px; font-size: 0.9rem; color: #666;">
-                        <strong>Dosi per:</strong> <span>${r.n_porzioni || 4}</span> persone
+                        <strong>Dosi per:</strong> <span>${r.n_porzioni}</span> ${r.porzioni}
                     </div>
                     <ul class="ingredients-list" id="lista-ingredienti">
                         ${r.ingredienti_ricette.map((ing, index) => `
@@ -306,3 +315,22 @@ window.ricalcolaDaPorzioni = (nuoveP, originaliP) => {
         }
     });
 };
+
+
+export async function eliminaRicetta(id) {
+    if (!confirm("Sei sicuro di voler eliminare definitivamente questa ricetta?")) return;
+
+    // Elimina prima i legami degli ingredienti (per via della foreign key)
+    await _supabase.from('ingredienti_ricette').delete().eq('fk_ricetta', id);
+    // Elimina i commenti
+    await _supabase.from('commenti').delete().eq('fk_ricetta', id);
+    // Elimina la ricetta
+    const { error } = await _supabase.from('ricette').delete().eq('pk_ricetta', id);
+
+    if (error) {
+        alert("Errore durante l'eliminazione: " + error.message);
+    } else {
+        alert("Ricetta eliminata correttamente.");
+        window.naviga('home'); // O la funzione che usi per tornare alla lista
+    }
+}

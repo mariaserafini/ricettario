@@ -5,6 +5,9 @@ import { showLatest } from './recenti.js';
 import { showRicetta, saveComment } from './ricetta.js';
 import { showSearch, handleIngSearch, addTag, removeTag, openQtaPrompt, eseguiRicerca, renderTags, clearSearch } from './ricerca.js';
 import { _supabase } from './config.js';
+import { showForm, saveRicetta } from './form-ricetta.js';
+import { showImportTesto } from './import-testo.js';
+import { showImportFoto } from './import-foto.js';
 
 // 2. Rendile "Globali" (Parte A della mia risposta precedente)
 // Senza questo passaggio, onclick="showHome()" nell'HTML non funzionerebbe
@@ -31,6 +34,11 @@ window.eseguiRicerca = eseguiRicerca;
 window.renderTags = renderTags;
 window.clearSearch = clearSearch;
 
+window.showForm = showForm;
+window.saveRicetta = saveRicetta;
+
+window.showImportTesto = showImportTesto;
+window.showImportFoto = showImportFoto;
 // Cosa succede quando l'utente preme Indietro o F5
 window.onpopstate = () => gestisciPercorso();
 window.onload = () => gestisciPercorso();
@@ -57,6 +65,9 @@ window.naviga = (sezione, id = null) => {
             clearSearch();
             showSearch();
         }
+        if (sezione === 'form-manuale') showForm();
+        if (sezione === 'import-testo') showImportTesto();
+        if (sezione === 'import-foto') showImportFoto();
     }
 };
 
@@ -68,12 +79,30 @@ function gestisciPercorso() {
 
     if (id) {
         showRicetta(id);
-    } else if (pagina === 'recenti') {
-        showLatest();
-    } else if (pagina === 'ricerca') {
-        showSearch();
     } else {
-        showHome();
+        switch (pagina) {
+            case 'home':
+                showHome();
+                break;
+            case 'recenti':
+                showLatest();
+                break;
+            case 'ricerca':
+                showSearch();
+                break;
+            case 'form-manuale':
+                showForm(); // Apre il form vuoto
+                break;
+            case 'import-testo':
+                showImportTesto(); // Pagina con la textarea
+                break;
+            case 'import-foto':
+                showImportFoto(); // Pagina con upload foto
+                break;
+            default:
+                showHome();
+                break;
+        }
     }
 }
 
