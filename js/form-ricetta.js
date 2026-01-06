@@ -2,6 +2,7 @@ import { _supabase, app } from './config.js';
 import { renderStars } from './ui.js';
 
 export async function showForm(id = null, prefillData = null) {
+
     app.innerHTML = `<div class="loader">Preparazione modulo...</div>`;
 
     // 1. Caricamento dati di supporto (Categorie, Difficoltà, ecc.)
@@ -16,7 +17,24 @@ export async function showForm(id = null, prefillData = null) {
     // Creiamo liste uniche per i suggerimenti
     const listaEtnica = [...new Set(resEtnica.data.map(r => r.etnica))].filter(Boolean).sort();
     const listaCottura = [...new Set(resCottura.data.map(r => r.cottura))].filter(Boolean).sort();
-    let r = prefillData || {}; // Dati da testo/foto o vuoti
+    let r = {
+        titolo: '',
+        esecuzione: '',
+        n_porzioni: null,
+        porzioni: null,
+        tempo_cottura: null,
+        tempo_preparazione: null,
+        tempo_agg: null,
+        fk_cat: null,
+        etnica: null,
+        immagine: '',
+        diff: null,
+        cottura: null,
+        autore: '',
+        ingredienti_ricette: [], // Fondamentale che sia un array vuoto
+        note: ''
+    };
+
 
     // 2. Se è una modifica, scarichiamo i dati dal DB
     if (id && !prefillData) {
@@ -32,7 +50,17 @@ export async function showForm(id = null, prefillData = null) {
             })
             .single();
         if (!error) r = data;
+    } else if (prefillData) {
+        // Mappiamo i dati dal parser al formato del form
+        r.titolo = prefillData.titolo;
+        r.esecuzione = prefillData.esecuzione;
+        // Trasformiamo gli ingredienti nel formato che le tue righe del form leggono
+        r.ingredienti_ricette = prefillData.ingredienti.map(i => ({
+            quant: i.quant,
+            nome: i.nome // Nota: addIngredienteRow dovrà gestire questo campo come abbiamo visto prima
+        }));
     }
+
 
     // Helper per separare HH:MM in ore e minuti per i campi di testo
     const getHM = (timeStr) => {
@@ -176,6 +204,7 @@ export async function showForm(id = null, prefillData = null) {
 
     // 4. Funzione interna per aggiungere righe ingredienti
     window.addIngredienteRow = (data = null) => {
+
         console.log("Dati ricevuti per la riga:", data); // Controlla la console del browser (F12)
         const container = document.getElementById('ingredients-rows-container');
         const row = document.createElement('div');
