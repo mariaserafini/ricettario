@@ -501,6 +501,28 @@ body {
     background: var(--primary-color);
 }
 
+.btn-salva {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+    border-radius: var(--radius);
+    margin-bottom: 15px;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: background 0.3s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-salva:hover {
+    background: var(--primary-color);
+}
 
 /* --- EFFETTO HOVER PROGRESSIVO STELLINE --- */
 

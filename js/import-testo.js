@@ -5,23 +5,39 @@ export function showImportTesto() {
         <div class="container-import">
             <h2>📥 Importa Ricetta da Testo</h2>
             <p>Incolla qui il testo della ricetta (Titolo, Ingredienti, Preparazione...)</p>
-            
-            <textarea id="testo-grezzo" placeholder="Esempio:
-Torta di Mele
-Ingredienti:
-3 Mele
-200g Farina
-...
-Preparazione:
-Taglia le mele e inforna..." 
+            <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+                <button class="btn-salva" id="btn-incolla" >
+                    📋 Incolla dagli appunti
+                </button>
+            </div>
+            <textarea id="testo-grezzo" placeholder="Esempio:\nTorta di Mele\nIngredienti:\n3 Mele\n200g Farina\n...\nPreparazione:\n" Taglia le mele e inforna..." 
             style="width: 100%; height: 300px; padding: 15px; border-radius: 8px; border: 1px solid #ccc; font-family: sans-serif;"></textarea>
             
             <div style="margin-top: 20px; display: flex; gap: 10px;">
-                <button class="btn-action" onclick="processaTesto()">Analizza e Crea Form</button>
-                <button class="btn-secondary" onclick="window.naviga('home')">Annulla</button>
+                <button class="btn-salva" onclick="processaTesto()">Analizza e Crea Form</button>
+                <button class="btn-salva" onclick="window.naviga('home')">Annulla</button>
             </div>
         </div>
     `;
+
+    const btnIncolla = document.getElementById('btn-incolla');
+    const textArea = document.getElementById('testo-grezzo');
+
+    btnIncolla.onclick = async () => {
+        try {
+            // navigator.clipboard.readText() è supportato solo su HTTPS
+            const testo = await navigator.clipboard.readText();
+            if (testo) {
+                textArea.value = testo;
+                console.log("Testo recuperato dagli appunti correttamente.");
+            } else {
+                alert("Gli appunti sembrano vuoti.");
+            }
+        } catch (err) {
+            console.error("Errore Clipboard:", err);
+            alert("Per incollare automaticamente, consenti l'accesso agli appunti quando richiesto dal browser.");
+        }
+    };
 
     // Rendiamo la funzione di analisi disponibile globalmente per il tasto onclick
     window.processaTesto = processaTesto;

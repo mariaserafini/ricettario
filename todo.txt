@@ -3,6 +3,7 @@
 - inserimento "veloce" da testo o da foto o da url
 - menu settimanale
 - filtro per ricette che non hanno foto 
+- lista di preferiti
 
 per avviare il server locale:
 python3 -m http.server 8000
@@ -16,5 +17,5 @@ export PGPASSWORD='....' (metti pswd corretta)
 3. attenzione al server aws che sia lo stesso riportato nella pagina di supabase
 pg_dump -h aws-1-eu-north-1.pooler.supabase.com -p 5432 -U postgres.pbvjzvocwmfpdugktcro -d postgres > backup_ricette.sql
 
-sistemare
-- visualizzazione ricetta non mantiene gli a capo
+chiave API per Lens
+AIzaSyCFSN9tGBCpX2Bpi40jLy97Fz-EGAzZugI

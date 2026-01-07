@@ -279,8 +279,8 @@ export async function showForm(id = null, prefillData = null) {
                     </div>
 
                     <div class="form-actions" style="margin-top:30px; display:flex; gap:10px;">
-                            <button type="button" class="btn-toggle-filters" style="flex:2" onclick="saveRicetta(event, ${id || 'null'})">💾 Salva Ricetta</button>
-                            <button type="button" class="btn-toggle-filters" style="flex:2" id="btn-annulla">Annulla</button>
+                            <button type="button" class="btn-salva" style="flex:2" onclick="saveRicetta(event, ${id || 'null'})">💾 Salva Ricetta</button>
+                            <button type="button" class="btn-salva" style="flex:2" id="btn-annulla">Annulla</button>
                     </div>
                 </form>
             </div>

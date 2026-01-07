@@ -1,6 +1,6 @@
 // Aggiungi questa importazione se non presente
 import { showImportTesto } from './import-testo.js';
-import { _supabase, app } from './config.js';
+import { _supabase, app, GOOGLE_API_KEY } from './config.js';
 
 export async function showImportFoto() {
     app.innerHTML = `
@@ -22,8 +22,8 @@ export async function showImportFoto() {
             <div id="ocr-status" style="margin: 15px 0; font-weight: bold; color: #2980b9;"></div>
             
             <div style="display: flex; gap: 10px; justify-content: center;">
-                <button class="btn-action" id="btn-analizza-foto" disabled>🔍 Analizza Foto</button>
-                <button class="btn-secondary" onclick="window.naviga('home')">Annulla</button>
+                <button class="btn-salva" id="btn-analizza-foto" disabled>🔍 Analizza Foto</button>
+                <button class="btn-salva" onclick="window.naviga('home')">Annulla</button>
             </div>
         </div>
     `;
@@ -96,11 +96,41 @@ export async function showImportFoto() {
 
 // Esempio di funzione OCR usando un servizio (da configurare)
 async function eseguiOCR(file) {
-    // Nota: L'OCR serio richiede una chiave API (Google Cloud Vision o simili)
-    // Se vuoi testare subito senza API esterne, puoi usare la libreria Tesseract.js
+    // Versione con libreria Tesseract.js (meno potente)
     // caricandola nel tuo index.html: <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    const result = await Tesseract.recognize(file, 'ita', {
+    /*const result = await Tesseract.recognize(file, 'ita', {
         logger: m => console.log(m.status + ": " + Math.round(m.progress * 100) + "%")
     });
-    return result.data.text;
+    return result.data.text;*/
+
+    // Versione con Google Cloud Vision API
+    const base64Image = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.readAsDataURL(file);
+    });
+
+    const url = `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_API_KEY}`;
+
+    const payload = {
+        requests: [{
+            image: { content: base64Image },
+            features: [{ type: 'TEXT_DETECTION' }]
+        }]
+    };
+
+    const response = await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+
+    // Google restituisce il testo intero nel primo elemento di textAnnotations
+    if (data.responses && data.responses[0].fullTextAnnotation) {
+        return data.responses[0].fullTextAnnotation.text;
+    } else {
+        throw new Error("Google non ha trovato testo in questa immagine.");
+    }
 }
