@@ -1,8 +1,66 @@
 import { _supabase, app } from './config.js';
-import { renderStars } from './ui.js';
+let misureGlobali = [];
+// 4. Funzione interna per aggiungere righe ingredienti
+window.addIngredienteRow = (data = null) => {
+
+    console.log(
+        data ? "Riga ingrediente precompilata:" : "Riga ingrediente vuota",
+        data
+    );
+    const container = document.getElementById('ingredients-rows-container');
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'search-flex ingredient-row';
+    row.style.alignItems = 'flex-end';
+    row.style.marginBottom = '10px';
+
+    const opzioniMisure = misureGlobali.map(m => `
+        <option value="${m.pk_misura}" ${data?.fk_misura == m.pk_misura ? 'selected' : ''}>
+            ${m.misura}
+        </option>
+    `).join('');
+    row.innerHTML = `
+        <div class="filter-group" style="flex:2">
+            <label>Ingrediente</label>
+            <input type="text" class="ing-nome" 
+                   placeholder="Ingrediente" 
+                   list="lista-ingredienti-esistenti" 
+                   value="${data?.ingredienti?.ingrediente || data?.ingrediente || ''}">
+        </div>
+
+        <div class="filter-group" style="flex:0.5">
+            <label>Q.tà</label>
+            <input type="number" step="any" class="ing-qta" 
+                   placeholder="Q.tà" 
+                   value="${data?.quant || ''}">
+        </div>
+
+        <div class="filter-group" style="flex:1">
+            <label>Misura</label>
+            <select class="ing-misura">
+                <option value="">--</option>
+                ${opzioniMisure}
+            </select>
+        </div>
+
+        <div class="filter-group" style="flex:1">
+            <label>Note</label>
+            <input type="text" class="ing-dettagli" 
+                   placeholder="es. tritata" 
+                   value="${data?.dettagli || ''}">
+        </div>
+
+        <button type="button" onclick="this.parentElement.remove()" 
+                style="background:none; border:none; cursor:pointer; font-size:1.5rem; color:#e74c3c; margin-bottom:10px;"
+                title="Rimuovi riga">
+            &times;
+        </button>
+    `;
+    container.appendChild(row);
+};
 
 export async function showForm(id = null, prefillData = null) {
-
+    console.log("DEBUG FORM - Dati ricevuti dal modulo import:", prefillData);
     app.innerHTML = `<div class="loader">Preparazione modulo...</div>`;
 
     // 1. Caricamento dati di supporto (Categorie, Difficoltà, ecc.)
@@ -13,6 +71,7 @@ export async function showForm(id = null, prefillData = null) {
         _supabase.from('ricette').select('etnica').not('etnica', 'is', null),
         _supabase.from('ricette').select('cottura').not('cottura', 'is', null)
     ]);
+    misureGlobali = resMisure.data;
 
     // Creiamo liste uniche per i suggerimenti
     const listaEtnica = [...new Set(resEtnica.data.map(r => r.etnica))].filter(Boolean).sort();
@@ -55,12 +114,37 @@ export async function showForm(id = null, prefillData = null) {
         r.titolo = prefillData.titolo;
         r.esecuzione = prefillData.esecuzione;
         // Trasformiamo gli ingredienti nel formato che le tue righe del form leggono
-        r.ingredienti_ricette = prefillData.ingredienti.map(i => ({
-            quant: i.quant,
-            nome: i.nome // Nota: addIngredienteRow dovrà gestire questo campo come abbiamo visto prima
-        }));
-    }
 
+
+        // 1. MAPPA GLI INGREDIENTI (Rimuovi la riga 'const misuraTrovata' che avevi prima di questa)
+        r.ingredienti_ricette = (prefillData.ingredienti_ricette || []).map(i => {
+
+            // 2. Definiamo e normalizziamo il testo dell'unità
+            let testoUnita = i.unita_testo?.toLowerCase().trim() || "";
+
+            // Piccola correzione: se l'utente scrive 'g', noi cerchiamo 'gr' (o viceversa, dipende dal tuo DB)
+            if (testoUnita === 'g') testoUnita = 'gr';
+
+            if (testoUnita === 'chilogrammi' || testoUnita === 'kg') {
+                testoUnita = 'gr'; // o 'kg' se preferisci, l'importante è che corrisponda al DB
+                i.quant = parseFloat(i.quant) * 1000;
+            }
+
+            // 3. ORA cerchiamo nel DB usando la variabile 'testoUnita' appena preparata
+            const misuraTrovata = resMisure.data.find(m =>
+                m.misura && m.misura.toLowerCase() === testoUnita
+            );
+            return {
+                ingrediente: i.ingrediente,
+                quant: i.quant,
+                fk_misura: misuraTrovata ? misuraTrovata.pk_misura : null,
+                // Se non troviamo la misura, uniamo l'unità originale ai dettagli
+                dettagli: misuraTrovata
+                    ? (i.dettagli || '')
+                    : [i.unita_testo, i.dettagli].filter(Boolean).join(' ')
+            };
+        });
+    }
 
     // Helper per separare HH:MM in ore e minuti per i campi di testo
     const getHM = (timeStr) => {
@@ -157,7 +241,7 @@ export async function showForm(id = null, prefillData = null) {
                         </div>
                         <div id="ingredients-rows-container">
                             <datalist id="lista-ingredienti-esistenti">
-                                ${resTuttiIng.data.map(i => `<option value="${i.ingrediente}">`).join('')}
+                                ${resTuttiIng.data.map(i => `<option value="${i.ingrediente || ''}">`).join('')}
                             </datalist>
                         </div>
                         <button type="button" class="btn-toggle-filters" style="width:auto; margin-top:10px;" onclick="addIngredienteRow()">
@@ -196,72 +280,21 @@ export async function showForm(id = null, prefillData = null) {
 
                     <div class="form-actions" style="margin-top:30px; display:flex; gap:10px;">
                             <button type="button" class="btn-toggle-filters" style="flex:2" onclick="saveRicetta(event, ${id || 'null'})">💾 Salva Ricetta</button>
+                            <button type="button" class="btn-toggle-filters" style="flex:2" id="btn-annulla">Annulla</button>
                     </div>
                 </form>
             </div>
         </div>
     `;
 
-    // 4. Funzione interna per aggiungere righe ingredienti
-    window.addIngredienteRow = (data = null) => {
-
-        console.log("Dati ricevuti per la riga:", data); // Controlla la console del browser (F12)
-        const container = document.getElementById('ingredients-rows-container');
-        const row = document.createElement('div');
-        row.className = 'search-flex ingredient-row';
-        row.style.alignItems = 'flex-end';
-        row.style.marginBottom = '10px';
-
-        row.innerHTML = `
-        <div class="filter-group" style="flex:2">
-            <label>Ingrediente</label>
-            <input type="text" class="ing-nome" 
-                   placeholder="Ingrediente" 
-                   list="lista-ingredienti-esistenti" 
-                   value="${data?.ingredienti?.ingrediente || data?.ingrediente || data?.nome || ''}">
-        </div>
-
-        <div class="filter-group" style="flex:0.5">
-            <label>Q.tà</label>
-            <input type="number" step="any" class="ing-qta" 
-                   placeholder="Q.tà" 
-                   value="${data?.quant || ''}">
-        </div>
-
-        <div class="filter-group" style="flex:1">
-            <label>Misura</label>
-            <select class="ing-misura">
-                <option value="">--</option>
-                ${resMisure.data.map(m => `
-                    <option value="${m.pk_misura}" ${data?.fk_misura == m.pk_misura ? 'selected' : ''}>
-                        ${m.misura}
-                    </option>
-                `).join('')}
-            </select>
-        </div>
-
-        <div class="filter-group" style="flex:1">
-            <label>Note</label>
-            <input type="text" class="ing-dettagli" 
-                   placeholder="es. tritata" 
-                   value="${data?.dettagli || ''}">
-        </div>
-
-        <button type="button" onclick="this.parentElement.remove()" 
-                style="background:none; border:none; cursor:pointer; font-size:1.5rem; color:#e74c3c; margin-bottom:10px;"
-                title="Rimuovi riga">
-            &times;
-        </button>
-    `;
-        container.appendChild(row);
-    };
-
-    // Popoliamo gli ingredienti esistenti
-    if (r.ingredienti_ricette && r.ingredienti_ricette.length > 0) {
-        r.ingredienti_ricette.forEach(ing => window.addIngredienteRow(ing));
-    } else {
-        window.addIngredienteRow(); // Almeno una riga vuota
-    }
+    // Gestione dinamica del tasto Annulla
+    document.getElementById('btn-annulla').addEventListener('click', () => {
+        if (id) {
+            window.naviga('ricetta', id);
+        } else {
+            window.naviga('home');
+        }
+    });
     // Aggiungi questo subito prima della fine della funzione showForm
     const inputFoto = document.getElementById('f-foto');
     inputFoto.addEventListener('change', function () {
@@ -281,7 +314,26 @@ export async function showForm(id = null, prefillData = null) {
             reader.readAsDataURL(this.files[0]);
         }
     });
+    // Riempimento righe ingredienti se già presenti (nel caso di modifica o prefill)
+    const container = document.getElementById('ingredients-rows-container');
+    container.innerHTML = ''; // Pulizia iniziale
+
+    // 2. Controlla se hai dati (da Parser o da DB) e crea le righe
+    if (r.ingredienti_ricette && r.ingredienti_ricette.length > 0) {
+        r.ingredienti_ricette.forEach(item => {
+            window.addIngredienteRow(item);
+        });
+    } else {
+        // Se la ricetta è nuova e vuota, metti una riga vuota di default
+        window.addIngredienteRow();
+    }
+
+
 }
+
+
+
+
 
 
 export async function saveRicetta(e, id = null) {

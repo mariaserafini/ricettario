@@ -1,8 +1,6 @@
 import { _supabase, app } from './config.js';
 
 export function showImportTesto() {
-    const app = document.getElementById('app');
-
     app.innerHTML = `
         <div class="container-import">
             <h2>📥 Importa Ricetta da Testo</h2>
@@ -38,7 +36,7 @@ function processaTesto() {
     let dati = {
         titolo: righe[0] || "Nuova Ricetta", // Assumiamo la prima riga sia il titolo
         esecuzione: "",
-        ingredienti: []
+        ingredienti_ricette: []
     };
 
     let sezioneAttuale = "titolo";
@@ -47,7 +45,7 @@ function processaTesto() {
         const rigaLower = riga.toLowerCase();
 
         // Cambio sezione se trovo parole chiave
-        if (rigaLower.includes("ingrediente") || rigaLower.includes("occorre")) {
+        if (rigaLower.startsWith("ingredient") || rigaLower.includes("occorrente")) {
             sezioneAttuale = "ingredienti";
             return;
         }
@@ -59,24 +57,39 @@ function processaTesto() {
         if (sezioneAttuale === "ingredienti") {
             // Tentativo di estrarre quantità e nome (Regex semplice)
             // Cerca numeri all'inizio della riga: "200g farina" o "3 mele"
-            const matchQuant = riga.match(/^(\d+)\s*(g|gr|kg|ml|l|pz)?\s+(.*)/i);
+            const matchQuant = riga.match(/^(\d+[.,]?\d*)\s*(g|gr|kg|ml|l|pz)?\s+([^,-]+)(?:[,\s-]+(.*))?/i);
 
             if (matchQuant) {
-                dati.ingredienti.push({
+                dati.ingredienti_ricette.push({
                     quant: matchQuant[1],
-                    unita: matchQuant[2] || "",
-                    nome: matchQuant[3]
+                    unita_testo: matchQuant[2] || "",
+                    ingrediente: matchQuant[3].trim(),
+                    dettagli: matchQuant[4] ? matchQuant[4].trim() : ""
                 });
+
             } else {
-                dati.ingredienti.push({ quant: "", nome: riga });
+                dati.ingredienti_ricette.push({
+                    quant: null,
+                    unita_testo: "",
+                    ingrediente: riga.trim(),
+                    dettagli: ""
+                });
             }
         } else if (sezioneAttuale === "esecuzione") {
             dati.esecuzione += riga + "\n\n";
         }
     });
 
+    dati.ingredienti_ricette = dati.ingredienti_ricette.filter(i =>
+        i &&
+        typeof i === 'object' &&
+        i.ingrediente &&
+        i.ingrediente.trim() !== ""
+    );
+    console.log("DEBUG IMPORT - Dati pronti per l'invio:", dati);
     // Ora passiamo i dati al tuo showForm esistente!
     import('./form-ricetta.js').then(module => {
+        console.log("DEBUG IMPORT - Chiamata a showForm in corso...");
         module.showForm(null, dati);
     });
 }

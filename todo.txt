@@ -1,13 +1,8 @@
-- inserimento "normale"
-- modifica
 - collega con altre
 - clona  ricetta
 - inserimento "veloce" da testo o da foto o da url
-- bottone nascondi ricetta se non interessa
 - menu settimanale
-- inserisci ingrediente
 - filtro per ricette che non hanno foto 
-- controlla se funziona pulsante elimina (in teoria già gestito)
 
 per avviare il server locale:
 python3 -m http.server 8000
@@ -21,3 +16,5 @@ export PGPASSWORD='....' (metti pswd corretta)
 3. attenzione al server aws che sia lo stesso riportato nella pagina di supabase
 pg_dump -h aws-1-eu-north-1.pooler.supabase.com -p 5432 -U postgres.pbvjzvocwmfpdugktcro -d postgres > backup_ricette.sql
 
+sistemare
+- visualizzazione ricetta non mantiene gli a capo
