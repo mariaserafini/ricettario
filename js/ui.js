@@ -78,9 +78,16 @@ export function renderRecipeCard(r) {
     // Verifichiamo se l'immagine esiste davvero
     const haImmagine = r.immagine && r.immagine.trim() !== "";
     const immagineUrl = haImmagine ? r.immagine : '';
+    const isFav = r.preferita === true;
 
     return `
         <div class="card-wrapper" data-id="${r.pk_ricetta}" style="position: relative;">
+            <button class="btn-toggle-view card-eye-btn card-fav-btn" 
+                    style="right: 55px;" 
+                    onclick="event.preventDefault(); event.stopPropagation(); togglePreferita(${r.pk_ricetta}, ${isFav})" 
+                    title="Preferita">
+                ${isFav ? '❤️' : '🤍'}
+            </button>
         <button class="btn-toggle-view card-eye-btn" 
                     onclick="event.preventDefault(); event.stopPropagation(); toggleNascondi(${r.pk_ricetta}, ${r.nascosta})" 
                     title="${r.nascosta ? 'Mostra' : 'Nascondi'}">
@@ -146,5 +153,19 @@ export async function toggleNascondi(id, statoAttuale) {
             el.style.transform = 'scale(0.9)';
             setTimeout(() => el.remove(), 300);
         }
+    }
+}
+
+
+export async function togglePreferita(id, statoAttuale) {
+    const nuovoStato = !statoAttuale;
+    const { error } = await _supabase.from('ricette').update({ preferita: nuovoStato }).eq('pk_ricetta', id);
+    if (error) { alert("Errore: " + error.message); return; }
+
+    // Aggiornamento UI immediato
+    const btn = document.querySelector(`[data-id="${id}"] .card-fav-btn`);
+    if (btn) {
+        btn.innerHTML = nuovoStato ? '❤️' : '🤍';
+        btn.setAttribute('onclick', `event.preventDefault(); event.stopPropagation(); togglePreferita(${id}, ${nuovoStato})`);
     }
 }

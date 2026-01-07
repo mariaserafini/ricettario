@@ -6,14 +6,14 @@ import { renderDifficolta, renderStars } from './ui.js';
 import { showForm } from './form-ricetta.js';
 
 export async function showRicetta(id) {
-    const newUrl = window.location.origin + window.location.pathname + '?id=' + id;
+    // questa riga l'ho commentata io perché mi diceva che newUrl non usata
+    // const newUrl = window.location.origin + window.location.pathname + '?id=' + id;
     // globalità funzioni
     window.saveComment = saveComment;
     window.copiaVersioneTesto = copiaVersioneTesto;
     window.segnaComeStampata = segnaComeStampata;
     window.editRicetta = () => showForm(id);
     window.eliminaRicetta = () => eliminaRicetta(id);
-
     app.innerHTML = '<div class="loader">Caricamento ricetta...</div>';
     const { data: r, error } = await _supabase
         .from('ricette')
@@ -30,7 +30,7 @@ export async function showRicetta(id) {
         app.innerHTML = `<p>Errore: ${error.message}</p>`;
         return;
     }
-
+    const isFav = r.preferita === true;
     const portata = r.categorie?.sottocategoria || r.categorie?.categoria || 'N/A';
     const immagineUrl = r.immagine || 'https://via.placeholder.com/400x300?text=Senza+Foto';
     // Funzione interna per formattare i tempi HH:MM:SS in modo leggibile
@@ -69,6 +69,10 @@ export async function showRicetta(id) {
         <div class="recipe-header-centered">
             <h1>${r.titolo} ${r.etnica ? `<small>(${r.etnica})</small>` : ''}</h1>
             <div id="rating-area" class="interactive-rating">${renderStars(r.voto, r.pk_ricetta)}</div>
+            <button class="btn-toggle-view" onclick="togglePreferitaDettaglio(${r.pk_ricetta}, ${isFav})" title="Preferita">
+            <span style="font-size: 1.5rem;">${isFav ? '❤️' : '🤍'}</span>
+            </button>
+            <span style="font-size: 1.5rem;">
             ${r.nascosta
             ? `<button class="btn-toggle-view" onclick="toggleNascondi(${r.pk_ricetta}, true)" title="Mostra ricetta">
          <svg class="icon-eye" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -83,6 +87,7 @@ export async function showRicetta(id) {
          </svg>
        </button>`
         }
+            </span>
         </div>
 
         <div class="recipe-grid-layout">
@@ -334,3 +339,9 @@ export async function eliminaRicetta(id) {
         window.naviga('home'); // O la funzione che usi per tornare alla lista
     }
 }
+
+window.togglePreferitaDettaglio = async (id, statoAttuale) => {
+    const nuovoStato = !statoAttuale;
+    const { error } = await _supabase.from('ricette').update({ preferita: nuovoStato }).eq('pk_ricetta', id);
+    if (error) { alert(error.message); } else { showRicetta(id); }
+};

@@ -1,6 +1,6 @@
 // Aggiungi questa importazione se non presente
 import { showImportTesto } from './import-testo.js';
-import { _supabase, app, GOOGLE_API_KEY } from './config.js';
+import { _supabase, app, GEMINI_API_KEY } from './config.js';
 
 export async function showImportFoto() {
     app.innerHTML = `
@@ -103,8 +103,8 @@ async function eseguiOCR(file) {
     });
     return result.data.text;*/
 
-    // Versione con Google Cloud Vision API
-    const base64Image = await new Promise((resolve) => {
+    // Versione con Google Cloud Vision API che però vuole la carta di credito (per ora)
+    /*const base64Image = await new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result.split(',')[1]);
         reader.readAsDataURL(file);
@@ -132,5 +132,43 @@ async function eseguiOCR(file) {
         return data.responses[0].fullTextAnnotation.text;
     } else {
         throw new Error("Google non ha trovato testo in questa immagine.");
+    }*/
+    // versione con Gemini API
+
+    // Convertiamo l'immagine in Base64
+    const base64Image = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.readAsDataURL(file);
+    });
+
+    // Usa v1beta invece di v1
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const payload = {
+        contents: [{
+            parts: [
+                { text: "Trascrivi esattamente tutto il testo di questa ricetta. Mantieni la distinzione tra titolo, ingredienti e preparazione." },
+                {
+                    inline_data: {
+                        mime_type: "image/jpeg",
+                        data: base64Image
+                    }
+                }
+            ]
+        }]
+    };
+
+    const response = await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+
+    if (data.candidates && data.candidates[0].content.parts[0].text) {
+        return data.candidates[0].content.parts[0].text;
+    } else {
+        throw new Error("Gemini non è riuscito a leggere l'immagine.");
     }
 }

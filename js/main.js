@@ -1,5 +1,5 @@
 // 1. Importa le funzioni dai tuoi file
-import { renderDifficolta, renderStars, generaStelline, aggiornaVoto, renderRecipeCard, convertiInMinuti, formattaTempo, toggleNascondi } from './ui.js';
+import { renderDifficolta, renderStars, generaStelline, aggiornaVoto, renderRecipeCard, convertiInMinuti, formattaTempo, toggleNascondi, togglePreferita } from './ui.js';
 import { showHome } from './home.js';
 import { showLatest } from './recenti.js';
 import { showRicetta, saveComment } from './ricetta.js';
@@ -8,6 +8,7 @@ import { _supabase } from './config.js';
 import { showForm, saveRicetta } from './form-ricetta.js';
 import { showImportTesto } from './import-testo.js';
 import { showImportFoto } from './import-foto.js';
+import { showPreferiti } from './preferiti.js';
 
 // 2. Rendile "Globali" (Parte A della mia risposta precedente)
 // Senza questo passaggio, onclick="showHome()" nell'HTML non funzionerebbe
@@ -24,6 +25,7 @@ window.renderRecipeCard = renderRecipeCard;
 window.convertiInMinuti = convertiInMinuti;
 window.formattaTempo = formattaTempo;
 window.toggleNascondi = toggleNascondi;
+window.togglePreferita = togglePreferita;
 
 window.showSearch = showSearch;
 window.handleIngSearch = handleIngSearch;
@@ -39,6 +41,9 @@ window.saveRicetta = saveRicetta;
 
 window.showImportTesto = showImportTesto;
 window.showImportFoto = showImportFoto;
+
+window.showPreferiti = showPreferiti;
+
 // Cosa succede quando l'utente preme Indietro o F5
 window.onpopstate = () => gestisciPercorso();
 window.onload = () => gestisciPercorso();
@@ -68,6 +73,7 @@ window.naviga = (sezione, id = null) => {
         if (sezione === 'form-manuale') showForm();
         if (sezione === 'import-testo') showImportTesto();
         if (sezione === 'import-foto') showImportFoto();
+        if (sezione === 'preferiti') showPreferiti();
     }
 };
 
@@ -98,6 +104,9 @@ function gestisciPercorso() {
                 break;
             case 'import-foto':
                 showImportFoto(); // Pagina con upload foto
+                break;
+            case 'preferiti':
+                showPreferiti();
                 break;
             default:
                 showHome();

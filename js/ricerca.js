@@ -200,7 +200,7 @@ export async function eseguiRicerca() {
             .from('ricette')
             .select(`
                 pk_ricetta, titolo, autore, voto, immagine, cottura, etnica, stampata,
-                tempo_cottura, tempo_preparazione, tempo_agg, nascosta,
+                tempo_cottura, tempo_preparazione, tempo_agg, nascosta, preferita
                 categorie!inner(categoria, sottocategoria, ordine_query),
                 ingredienti_ricette(fk_ingrediente, quant)
             `)
@@ -215,6 +215,8 @@ export async function eseguiRicerca() {
         if (stampate) query = query.eq('stampata', true);
         if (!showHidden) query = query.eq('nascosta', false);
         if (showHidden) query = query.eq('nascosta', true);
+        if (!showHidden) query = query.eq('preferita', false);
+        if (showHidden) query = query.eq('preferita', true);
 
         // Logica Categoria (Ordine_Query)
         if (catVal) {
@@ -416,3 +418,5 @@ export function clearSearch() {
     selectedIncludes = [];
     selectedExcludes = [];
 }
+
+

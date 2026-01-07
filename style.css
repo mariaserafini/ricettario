@@ -154,6 +154,14 @@ body {
     font-size: 0.9rem;
 }
 
+.card-fav-btn {
+    right: 55px !important;
+    /* Spostato a sinistra rispetto all'occhio che è a 10px */
+    background: rgba(255, 255, 255, 0.8) !important;
+    /* Un po' più visibile */
+    font-size: 1.2rem;
+}
+
 .card-footer-info {
     margin-top: auto;
     padding-top: 10px;
