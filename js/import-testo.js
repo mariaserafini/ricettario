@@ -27,7 +27,7 @@ Taglia le mele e inforna..."
     window.processaTesto = processaTesto;
 }
 
-function processaTesto() {
+export function processaTesto() {
     const testo = document.getElementById('testo-grezzo').value;
     if (!testo.trim()) return alert("Incolla del testo prima di continuare!");
 

@@ -7,6 +7,7 @@
     <title>Il Mio Ricettario</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module" src="js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:,">
 </head>
@@ -21,8 +22,8 @@
                 <a href="javascript:void(0)" class="dropbtn">+ ▾</a>
                 <div class="dropdown-content">
                     <a href="#" onclick="naviga('form-manuale')">✍️ Manuale</a>
-                    <a href="#" onclick="naviga('import-testo')">📄 Da Testo</a>
-                    <a href="#" onclick="naviga('import-foto')">📸 Da Foto</a>
+                    <a href="#" onclick="naviga('import-testo')">📄 Testo</a>
+                    <a href="#" onclick="naviga('import-foto')">📸 Foto</a>
                 </div>
             </li>
         </ul>

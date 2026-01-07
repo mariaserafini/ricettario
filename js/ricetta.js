@@ -136,7 +136,7 @@ export async function showRicetta(id) {
 
             <div class="execution-box">
                 <h3>Preparazione</h3>
-                <p id="exec-to-copy">${r.esecuzione}</p>
+                <p id="exec-to-copy" style="white-space: pre-line;">${r.esecuzione}</p>
             </div>
 
                 <div class="recipe-footer-meta">
