@@ -94,6 +94,14 @@ export async function showForm(id = null, prefillData = null) {
         note: ''
     };
 
+    let tCottura = null;
+    let tAgg = null;
+
+    const getHM = (timeStr) => {
+        if (!timeStr) return { h: '', m: '' };
+        const parts = timeStr.split(':');
+        return { h: parseInt(parts[0]), m: parseInt(parts[1]) };
+    };
 
     // 2. Se è una modifica, scarichiamo i dati dal DB
     if (id && !prefillData) {
@@ -109,6 +117,11 @@ export async function showForm(id = null, prefillData = null) {
             })
             .single();
         if (!error) r = data;
+
+        tCottura = getHM(r.tempo_cottura);
+        const tPrep = getHM(r.tempo_preparazione);
+        tAgg = getHM(r.tempo_aggiuntivo);
+
     } else if (prefillData) {
         // Mappiamo i dati dal parser al formato del form
         r.titolo = prefillData.titolo;
@@ -116,12 +129,12 @@ export async function showForm(id = null, prefillData = null) {
         r.fk_cat = prefillData.fk_cat;
         r.cottura = prefillData.cottura;
         tCottura = {
-            h: prefillData.tempo_cottura_h,
-            m: prefillData.tempo_cottura_m
+            h: parseInt(prefillData.tempo_cottura_h) || "",
+            m: parseInt(prefillData.tempo_cottura_m) || ""
         };
         tAgg = {
-            h: prefillData.tempo_attesa_h,
-            m: prefillData.tempo_attesa_m
+            h: parseInt(prefillData.tempo_attesa_h) || "",
+            m: parseInt(prefillData.tempo_attesa_m) || ""
         };
         r.n_porzioni = prefillData.n_porzioni
         r.porzioni = prefillData.porzioni
@@ -159,15 +172,8 @@ export async function showForm(id = null, prefillData = null) {
     }
 
     // Helper per separare HH:MM in ore e minuti per i campi di testo
-    const getHM = (timeStr) => {
-        if (!timeStr) return { h: '', m: '' };
-        const parts = timeStr.split(':');
-        return { h: parseInt(parts[0]), m: parseInt(parts[1]) };
-    };
 
-    const tCottura = getHM(r.tempo_cottura);
-    const tPrep = getHM(r.tempo_preparazione);
-    const tAgg = getHM(r.tempo_aggiuntivo);
+
 
     // Funzione globale per gestire il click sui pallini della difficoltà
     window.setDifficolta = (val) => {
@@ -342,11 +348,6 @@ export async function showForm(id = null, prefillData = null) {
 
 
 }
-
-
-
-
-
 
 export async function saveRicetta(e, id = null) {
     e.preventDefault();
@@ -551,3 +552,5 @@ async function resizeImage(file, maxWidth, maxHeight) {
         reader.readAsDataURL(file);
     });
 }
+
+

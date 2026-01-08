@@ -14,3 +14,6 @@ per fare backup del db
 export PGPASSWORD='....' (metti pswd corretta)
 3. attenzione al server aws che sia lo stesso riportato nella pagina di supabase
 pg_dump -h aws-1-eu-north-1.pooler.supabase.com -p 5432 -U postgres.pbvjzvocwmfpdugktcro -d postgres > backup_ricette.sql
+
+
+controlla tPrep se viene preso correttamnte dal db

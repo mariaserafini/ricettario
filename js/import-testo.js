@@ -138,10 +138,10 @@ window.processaTesto = async () => {
               "categoria": "antipasto/primo/secondo/dolce/pane/bevanda (se possibile) deve essere uno degli elementi di questa lista: Antipasti,Bevande e Sorbetti,Dolci,Pane e Piatti Unici,Primi,Secondi di Carne,Secondi di Pesce,Secondi Vegetariani e Contorni",
               "sottocategoria": "eventuale sottocategoria (se possibile) deve essere uno degli elementi di questa lista: Gnocchi e Ravioli,Pasta,Paste Ripiene e al Forno,Riso e Cereali,Zuppe e Minestre,Fettina (carne),Polpette e Polpettoni (carne),Ripieni e Arrosti (carne),Umidi e Stracotti,Fritture (pesce),Pesce al Forno/Griglia/Vapore,Tranci e Filetti (pesce),Insalate e Contorni,Uova,Verdure Ripiene e Sformati,Piatti veg, Biscotti e Pasticcini,Creme per Farcire,Crostate,Dolci al Cucchiaio,Dolci Fritti,Frutta,Pandolci e Brioches,Torte e Dolci Farciti,Focacce e Pizze,Impasti Base,Pane e Stuzzichini,Torte Salate,Confetture e Marmellate,Salse e Preparati base,Sottaceti e Sottolio,Aperitivi e Digestivi,Bevande Calde,Cocktails,Frappè e Frullati,Sorbetti,Pesce ripieno,Conserve sotto alcool,Succhi e Sciroppi,Legumi e Piatti Veg,Pesce in umido,Formaggi,Polpette e Polpettoni (pesce)",
               "cottura": "Forno/Lessato/Padella o altra parola da questa lista: Arrosto, Bagnomaria, Bimby, Bollito/Lessato, Crudo, Forno,Fritto, Microonde, Multipla, Padella, Pentola a pressione, Vapore (se possibile)",
-              "tempo_cottura_h": "numero ore di cottura (se possibile)",
-              "tempo_cottura_m": "numero minuti di cottura (se possibile)",
-              "tempo_attesa_h": "numero ore di attesa, es. di lievitazione (se possibile)",
-              "tempo_attesa_m": "numero minuti di attesa es. per raffreddare (se possibile)",
+              "tempo_cottura_h": "numero (intero) ore di cottura (se possibile)",
+              "tempo_cottura_m": "numero (intero) minuti di cottura (se possibile)",
+              "tempo_attesa_h": "numero (intero) ore di attesa, es. di lievitazione (se possibile)",
+              "tempo_attesa_m": "numero (intero) minuti di attesa es. per raffreddare (se possibile)",
               "nporzioni": "il numero di porzioni (solo numerico)",
               "porzioni": "la misura in cui sono espresse le porzioni (es. persone, pezzi, cm della tortiera,ecc.) (se possibile)",
               "ingredienti_ricette": [
@@ -229,16 +229,20 @@ window.confermaEInvia = async () => {
     // Raccogliamo i dati modificati dall'interfaccia di revisione
     const ingredientiFinali = [];
     document.querySelectorAll('.revision-item').forEach(item => {
+        const rawIng = item.querySelector('.rev-i').value.trim();
+        const nomeIngrediente = rawIng ? rawIng.charAt(0).toUpperCase() + rawIng.slice(1).toLowerCase() : "";
         ingredientiFinali.push({
-            quant: item.querySelector('.rev-q').value || null,
+            quant: parseFrazione(item.querySelector('.rev-q').value) || null,
             unita_testo: item.querySelector('.rev-u').value || "",
-            ingrediente: item.querySelector('.rev-i').value || "",
+            ingrediente: nomeIngrediente,
             dettagli: item.querySelector('.rev-d').value || ""
         });
     });
 
-    const categoria = document.getElementById('rev-categoria').value || "";
-    const sottocategoria = document.getElementById('rev-sottocategoria').value || "";
+    const rawCat = document.getElementById('rev-categoria').value.trim();
+    const categoria = rawCat ? rawCat.charAt(0).toUpperCase() + rawCat.slice(1).toLowerCase() : "";
+    const rawSotto = document.getElementById('rev-sottocategoria').value.trim();
+    const sottocategoria = rawSotto ? rawSotto.charAt(0).toUpperCase() + rawSotto.slice(1).toLowerCase() : "";
     let fk_cat = null;
 
     if ((categoria && categoria.trim() !== "") || (sottocategoria && sottocategoria.trim() !== "")) {
@@ -264,12 +268,12 @@ window.confermaEInvia = async () => {
     }
 
     const datiFinali = {
-        titolo: document.getElementById('rev-titolo').value,
+        titolo: document.getElementById('rev-titolo').value.charAt(0).toUpperCase() + document.getElementById('rev-titolo').value.slice(1),
         esecuzione: document.getElementById('rev-esecuzione').value,
         fk_cat: fk_cat,
         n_porzioni: document.getElementById('rev-nporzioni').value || "",
         porzioni: document.getElementById('rev-porzioni').value || "",
-        cottura: document.getElementById('rev-cottura').value || "",
+        cottura: document.getElementById('rev-cottura').value.charAt(0).toUpperCase() + document.getElementById('rev-cottura').value.slice(1) || "",
         tempo_cottura_h: document.getElementById('rev-tempo-cottura-h').value || "",
         tempo_cottura_m: document.getElementById('rev-tempo-cottura-m').value || "",
         tempo_attesa_h: document.getElementById('rev-tempo-attesa-h').value || "",
@@ -282,3 +286,11 @@ window.confermaEInvia = async () => {
 };
 
 
+function parseFrazione(testo) {
+    if (!testo) return null;
+    if (testo.includes('/')) {
+        const [num, den] = testo.split('/').map(Number);
+        return den ? parseFloat((num / den).toFixed(1)) : num;
+    }
+    return parseFloat(parseFloat(testo).toFixed(1));
+}
