@@ -5,11 +5,11 @@ import { _supabase, app, GEMINI_API_KEY } from './config.js';
 export async function showImportFoto() {
     app.innerHTML = `
         <div class="container-import" style="text-align: center;">
-            <h2>📸 Importa Ricetta da Foto</h2>
+            <h3>📸 Importa da Foto</h3>
             <p>Scatta una foto alla ricetta o caricala dalla galleria.</p>
             
             <div class="upload-area" id="drop-zone" style="border: 2px dashed #ccc; padding: 40px; border-radius: 15px; margin: 20px 0; cursor: pointer;">
-                <input type="file" id="foto-ocr" accept="image/*" capture="environment" style="display: none;">
+                <input type="file" id="foto-ocr" accept="image/*" style="display: none;">
                 <div id="preview-container" style="display: none; margin-bottom: 20px;">
                     <img id="img-preview" src="" style="max-width: 100%; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
                 </div>
@@ -22,7 +22,7 @@ export async function showImportFoto() {
             <div id="ocr-status" style="margin: 15px 0; font-weight: bold; color: #2980b9;"></div>
             
             <div style="display: flex; gap: 10px; justify-content: center;">
-                <button class="btn-salva" id="btn-analizza-foto" disabled>🔍 Analizza Foto</button>
+                <button class="btn-salva" id="btn-analizza-foto" disabled>🔍 Analizza</button>
                 <button class="btn-salva" onclick="window.naviga('home')">Annulla</button>
             </div>
         </div>

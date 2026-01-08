@@ -22,7 +22,7 @@ export async function showSearch() {
                 🔍 Filtri di Ricerca (Clicca per aprire/chiudere)
             </button>
             <div class="search-filters-content open">
-                <h1>Ricerca Avanzata</h1>
+                <h3>Ricerca</h3>
                 
                 <div class="search-flex">
                     <div class="filter-group">

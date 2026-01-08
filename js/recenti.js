@@ -20,8 +20,7 @@ export async function showLatest() {
     // Usiamo la stessa struttura che funziona in home.js e ricerca.js
     let html = `
         <section class="home-header">
-            <h1>Ultime novità</h1>
-            <p>Le ricette aggiunte di recente</p>
+            <h3>Ultime inserite</h3>
         </section>
         <div class="recipe-grid">`;
 

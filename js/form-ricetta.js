@@ -113,8 +113,20 @@ export async function showForm(id = null, prefillData = null) {
         // Mappiamo i dati dal parser al formato del form
         r.titolo = prefillData.titolo;
         r.esecuzione = prefillData.esecuzione;
-        // Trasformiamo gli ingredienti nel formato che le tue righe del form leggono
+        r.fk_cat = prefillData.fk_cat;
+        r.cottura = prefillData.cottura;
+        tCottura = {
+            h: prefillData.tempo_cottura_h,
+            m: prefillData.tempo_cottura_m
+        };
+        tAgg = {
+            h: prefillData.tempo_attesa_h,
+            m: prefillData.tempo_attesa_m
+        };
+        r.n_porzioni = prefillData.n_porzioni
+        r.porzioni = prefillData.porzioni
 
+        // Trasformiamo gli ingredienti nel formato che le tue righe del form leggono
 
         // 1. MAPPA GLI INGREDIENTI (Rimuovi la riga 'const misuraTrovata' che avevi prima di questa)
         r.ingredienti_ricette = (prefillData.ingredienti_ricette || []).map(i => {
@@ -171,7 +183,7 @@ export async function showForm(id = null, prefillData = null) {
     app.innerHTML = `
         <div class="search-form-container">
             <div class="search-filters-content open">
-                <h1>${id ? 'Modifica Ricetta' : 'Nuova Ricetta'}</h1>
+                <h3>${id ? 'Modifica' : 'Inserimento'}</h3>
                 
                 <form id="recipe-form">
                     <div class="search-flex">

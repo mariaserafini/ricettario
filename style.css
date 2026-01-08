@@ -857,6 +857,28 @@ input.no-arrows::-webkit-inner-spin-button {
     border: 1px solid #d1e9f9;
 }
 
+/* caselle per revisione testo */
+.revision-area {
+    background: #fff;
+    border: 2px solid var(--primary-color);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.revision-item {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+    align-items: center;
+}
+
+.revision-item input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
 /* Responsive - lasciare sempre in fondo*/
 
 /* --- 1. CONFIGURAZIONE PC (FUORI DAI MEDIA) --- */
