@@ -7,6 +7,7 @@ export function showImportTesto() {
     app.innerHTML = `
         <div class="container-import">
             <h3>📥 Importa da Testo</h3>
+            <div id="import-input-area" class="search-filters-content open">
             <p>Scrivi il testo</p>
             <div style="margin-bottom: 15px; display: flex; gap: 10px;">
                 <button class="btn-salva" id="btn-incolla" >
@@ -19,6 +20,7 @@ export function showImportTesto() {
             <div style="margin-top: 20px; display: flex; gap: 10px;">
                 <button class="btn-salva" id = "btn-analizza" onclick="processaTesto()">🔍 Analizza</button>
                 <button class="btn-salva" onclick="window.naviga('home')">Annulla</button>
+            </div>
             </div>
              <div id="area-revisione"></div>
         </div>
@@ -173,6 +175,20 @@ window.processaTesto = async () => {
         testoJson = testoJson.replace(/```json|```/g, "").trim();
         datiInRevisione = JSON.parse(testoJson);
         // Renderizziamo la fase intermedia
+        const inputArea = document.getElementById('import-input-area');
+        if (inputArea) {
+            inputArea.classList.remove('open');
+            // Opzionale: aggiungiamo un bottone per riaprirla se l'utente ha sbagliato
+            if (!document.getElementById('btn-mostra-input')) {
+                const btnRiapri = document.createElement('button');
+                btnRiapri.id = "btn-mostra-input";
+                btnRiapri.className = "btn-toggle-filters";
+                btnRiapri.style.marginBottom = "20px";
+                btnRiapri.innerText = "📝 Mostra/Modifica Testo Originale";
+                btnRiapri.onclick = () => inputArea.classList.toggle('open');
+                inputArea.parentNode.insertBefore(btnRiapri, inputArea);
+            }
+        }
         renderizzaRevisione();
     } catch (error) {
         console.error("Errore Gemini:", error);
@@ -244,14 +260,17 @@ window.confermaEInvia = async () => {
     const rawSotto = document.getElementById('rev-sottocategoria').value.trim();
     const sottocategoria = rawSotto ? rawSotto.charAt(0).toUpperCase() + rawSotto.slice(1).toLowerCase() : "";
     let fk_cat = null;
+    console.log("Categoria:", categoria);
+    console.log("Sottocategoria:", sottocategoria);
+
 
     if ((categoria && categoria.trim() !== "") || (sottocategoria && sottocategoria.trim() !== "")) {
         let query = _supabase
             .from('categorie')
             .select('pk_cat');
 
-        if (categoria) query = query.eq('categoria', categoria.trim());
-        if (sottocategoria) query = query.eq('sottocategoria', sottocategoria.trim());
+        if (categoria) query = query.ilike('categoria', `%${categoria.trim()}%`);
+        if (sottocategoria) query = query.ilike('sottocategoria', `%${sottocategoria.trim()}%`);
 
         const { data, error } = await query.maybeSingle();
 

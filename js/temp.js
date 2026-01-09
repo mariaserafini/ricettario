@@ -1,103 +1,78 @@
-import { _supabase, app, GEMINI_API_KEY } from './config.js';
-import { showForm } from './form-ricetta.js';
+window.attivaModificaDosi = (porzioniOriginali) => {
+    const lista = document.getElementById('lista-ingredienti');
+    if (!lista) return;
 
-// Variabile temporanea per i dati in fase di revisione
-let datiInRevisione = null;
+    // 1. Gestione del valore di fallback per il calcolo
+    // Se porzioniOriginali è null, undefined o 0, usiamo 1 come base neutra
+    const nOriginale = (porzioniOriginali && !isNaN(porzioniOriginali)) ? parseFloat(porzioniOriginali) : 1;
 
-export function showImportTesto() {
-    app.innerHTML = `
-        <div class="container-import" id="import-container">
-            <h3>📥 Importa da Testo</h3>
-            <textarea id="testo-grezzo" placeholder="Incolla qui la ricetta..." style="width: 100%; height: 200px; padding: 15px; border-radius: 8px;"></textarea>
-            <div style="margin-top: 20px; display: flex; gap: 10px;">
-                <button class="btn-salva" id="btn-analizza" onclick="processaTesto()">🔍 Analizza con Gemini</button>
-            </div>
-            <div id="area-revisione"></div>
-        </div>
-    `;
-}
+    const wrappers = lista.querySelectorAll('.qty-wrapper');
+    wrappers.forEach((wrapper, index) => {
+        const spanOriginale = wrapper.querySelector('.qty-value');
+        if (!spanOriginale) return;
 
-window.processaTesto = async () => {
-    const testo = document.getElementById('testo-grezzo').value;
-    const btn = document.getElementById('btn-analizza');
-    const areaRevisione = document.getElementById('area-revisione');
+        const valoreAttuale = spanOriginale.innerText;
+        spanOriginale.style.display = 'none';
 
-    if (!testo.trim()) return alert("Incolla del testo!");
+        let input = wrapper.querySelector('.input-dose');
+        if (!input) {
+            input = document.createElement('input');
+            input.type = 'number';
+            input.className = 'input-dose no-arrows';
+            input.step = 'any';
+            input.onkeydown = (e) => { if (e.key === 'Enter') input.blur(); };
 
-    btn.innerText = "⏳ Analisi in corso...";
-    btn.disabled = true;
+            // Passiamo nOriginale (che è almeno 1) alla funzione di ricalcolo
+            input.onblur = () => ricalcolaDaIngrediente(index, nOriginale);
+            wrapper.appendChild(input);
+        }
 
-    try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-        const prompt = `Analizza questa ricetta e restituisci un JSON con: titolo, esecuzione, e ingredienti_ricette (array di oggetti con quant, unita_testo, ingrediente, dettagli). Testo: ${testo}`;
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-        });
-
-        const resData = await response.json();
-        let testoJson = resData.candidates[0].content.parts[0].text.replace(/```json|```/g, "").trim();
-        datiInRevisione = JSON.parse(testoJson);
-
-        // Renderizziamo la fase intermedia
-        renderizzaRevisione();
-    } catch (error) {
-        alert("Errore durante l'analisi.");
-    } finally {
-        btn.innerText = "🔍 Analizza con Gemini";
-        btn.disabled = false;
-    }
-};
-
-function renderizzaRevisione() {
-    const area = document.getElementById('area-revisione');
-    area.innerHTML = `
-        <div class="revision-area">
-            <h4>🧐 Revisione Dati</h4>
-            <label>Titolo:</label>
-            <input type="text" id="rev-titolo" value="${datiInRevisione.titolo}" style="width:100%; margin-bottom:15px;">
-            
-            <label>Ingredienti (modifica o elimina):</label>
-            <div id="rev-lista-ingredienti">
-                ${datiInRevisione.ingredienti_ricette.map((ing, i) => `
-                    <div class="revision-item" data-index="${i}">
-                        <input type="text" class="rev-q" style="width:50px" value="${ing.quant || ''}" placeholder="Qtà">
-                        <input type="text" class="rev-u" style="width:60px" value="${ing.unita_testo || ''}" placeholder="Unità">
-                        <input type="text" class="rev-i" style="flex:1" value="${ing.ingrediente || ''}" placeholder="Ingrediente">
-                        <button onclick="this.parentElement.remove()" style="background:none; border:none; cursor:pointer;">🗑️</button>
-                    </div>
-                `).join('')}
-            </div>
-
-            <label style="display:block; margin-top:15px;">Preparazione:</label>
-            <textarea id="rev-esecuzione" style="width:100%; height:150px;">${datiInRevisione.esecuzione}</textarea>
-
-            <button class="btn-salva" style="background:#27ae60; margin-top:20px; width:100%;" onclick="confermaEInvia()">✅ Conferma e Vai al Form</button>
-        </div>
-    `;
-    area.scrollIntoView({ behavior: 'smooth' });
-}
-
-window.confermaEInvia = () => {
-    // Raccogliamo i dati modificati dall'interfaccia di revisione
-    const ingredientiFinali = [];
-    document.querySelectorAll('.revision-item').forEach(item => {
-        ingredientiFinali.push({
-            quant: item.querySelector('.rev-q').value || null,
-            unita_testo: item.querySelector('.rev-u').value,
-            ingrediente: item.querySelector('.rev-i').value,
-            dettagli: "" // Gemini solitamente li include nel nome ingrediente se non specificato
-        });
+        input.value = valoreAttuale;
+        input.style.display = 'inline-block';
     });
 
-    const datiFinali = {
-        titolo: document.getElementById('rev-titolo').value,
-        esecuzione: document.getElementById('rev-esecuzione').value,
-        ingredienti_ricette: ingredientiFinali
-    };
+    // 2. Aggiunta campo porzioni (interfaccia di controllo)
+    if (!document.getElementById('input-porzioni')) {
+        const box = document.querySelector('.ingredients-box');
+        const displayStatico = document.getElementById('display-porzioni');
 
-    console.log("DATI CONFERMATI:", datiFinali);
-    showForm(null, datiFinali); // Passaggio finale al tuo form esistente
+        // Recupero pulito del testo (es. "persone")
+        let testoOriginale = 'porzioni';
+        if (displayStatico && displayStatico.innerText.trim() !== "") {
+            // Puliamo il testo statico per estrarre solo la parola descrittiva
+            testoOriginale = displayStatico.innerText
+                .replace('Dosi per:', '')
+                .replace(porzioniOriginali, '')
+                .trim();
+        }
+        if (!testoOriginale) testoOriginale = 'porzioni';
+
+        if (displayStatico) displayStatico.style.display = 'none';
+
+        const divPorzioni = document.createElement('div');
+        divPorzioni.className = "portions-edit-area";
+        // Nota: ho rimosso lo spazio extra nel tag <div style... che creava problemi di visualizzazione
+        divPorzioni.innerHTML = `
+        <div style="margin: 10px 0; background: #f0f0f0; padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 0.9rem; font-weight: bold;">Dosi:</span>
+            <input type="number" id="input-porzioni" class="no-arrows" 
+                   style="width: 60px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;"
+                   value="${nOriginale}"
+                   onkeydown="if(event.key==='Enter') this.blur();"
+                   onblur="ricalcolaDaPorzioni(this.value, ${nOriginale})">
+            
+            <input type="text" id="input-testo-porzioni" 
+                   style="width: 110px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;" 
+                   value="${testoOriginale}" 
+                   placeholder="es: persone">
+        </div>`;
+
+        box.insertBefore(divPorzioni, lista);
+    }
+
+    const btn = document.getElementById('btn-modifica-dosi');
+    if (btn) {
+        btn.innerText = "✅ Fine Modifica";
+        btn.onclick = () => location.reload();
+    }
 };

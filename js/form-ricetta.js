@@ -94,8 +94,9 @@ export async function showForm(id = null, prefillData = null) {
         note: ''
     };
 
-    let tCottura = null;
-    let tAgg = null;
+    let tCottura = { h: '', m: '' };
+    let tAgg = { h: '', m: '' };
+    let tPrep = { h: '', m: '' };
 
     const getHM = (timeStr) => {
         if (!timeStr) return { h: '', m: '' };
@@ -119,7 +120,7 @@ export async function showForm(id = null, prefillData = null) {
         if (!error) r = data;
 
         tCottura = getHM(r.tempo_cottura);
-        const tPrep = getHM(r.tempo_preparazione);
+        tPrep = getHM(r.tempo_preparazione);
         tAgg = getHM(r.tempo_aggiuntivo);
 
     } else if (prefillData) {
@@ -135,6 +136,10 @@ export async function showForm(id = null, prefillData = null) {
         tAgg = {
             h: parseInt(prefillData.tempo_attesa_h) || "",
             m: parseInt(prefillData.tempo_attesa_m) || ""
+        };
+        tPrep = {
+            h: "",
+            m: ""
         };
         r.n_porzioni = prefillData.n_porzioni
         r.porzioni = prefillData.porzioni
@@ -188,6 +193,9 @@ export async function showForm(id = null, prefillData = null) {
     // 3. Render HTML usando le classi di ricerca.js
     app.innerHTML = `
         <div class="search-form-container">
+            <datalist id="lista-ingredienti-esistenti">
+                ${resTuttiIng.data.map(i => `<option value="${i.ingrediente || ''}">`).join('')}
+            </datalist>
             <div class="search-filters-content open">
                 <h3>${id ? 'Modifica' : 'Inserimento'}</h3>
                 
@@ -258,9 +266,6 @@ export async function showForm(id = null, prefillData = null) {
                             </div>
                         </div>
                         <div id="ingredients-rows-container">
-                            <datalist id="lista-ingredienti-esistenti">
-                                ${resTuttiIng.data.map(i => `<option value="${i.ingrediente || ''}">`).join('')}
-                            </datalist>
                         </div>
                         <button type="button" class="btn-toggle-filters" style="width:auto; margin-top:10px;" onclick="addIngredienteRow()">
                             + Aggiungi Ingrediente
@@ -426,9 +431,9 @@ export async function saveRicetta(e, id = null) {
             porzioni: document.getElementById('f-porzioni-tipo').value || null,
             tempo_cottura: getInterval('cottura'),
             tempo_preparazione: getInterval('prep'),
-            tempo_agg: getInterval('agg'),
-            data: new Date().toISOString()
+            tempo_agg: getInterval('agg')
         };
+
 
 
         // SALVATAGGIO RICETTA

@@ -95,10 +95,12 @@ export async function showRicetta(id) {
                 <div class="ingredients-box">
                     <h3>Ingredienti</h3>
                     <div id="display-porzioni" style="margin-bottom: 15px; font-size: 0.9rem; color: #666;">
-                        <strong>Dosi per:</strong> <span>${r.n_porzioni}</span> ${r.porzioni}
+                        ${(r.n_porzioni || r.porzioni) ? `
+                        <strong>Dosi per:</strong> <span>${r.n_porzioni || ''}</span> ${r.porzioni || ''}
+                        ` : ''}
                     </div>
                     <ul class="ingredients-list" id="lista-ingredienti">
-                        ${r.ingredienti_ricette.map((ing, index) => `
+                        ${r.ingredienti_ricette.map((ing) => `
                             <li class="ingredient-item">
                                 <span class="qty-wrapper">
                                     <strong class="qty-value" data-base="${ing.quant || ''}">${ing.quant || ''}</strong>
@@ -108,7 +110,7 @@ export async function showRicetta(id) {
                             </li>
                         `).join('')}
                     </ul>
-                    <button class="btn-portions" id="btn-modifica-dosi" onclick="attivaModificaDosi(${r.n_porzioni || 4})">
+                    <button class="btn-portions" id="btn-modifica-dosi" onclick="attivaModificaDosi(${r.n_porzioni || 1})">
                         ⚖️ Modifica Dosi
                     </button>
                 </div>
@@ -134,9 +136,10 @@ export async function showRicetta(id) {
                         ${tAgg && tAgg !== '0' ? `<span class="badge badge-time">⏳  ${tAgg}</span>` : ''}
                     </div>   
                 </div>
+                ${immagineUrl ? `
                 <div class="recipe-main-image">
                     <img src="${immagineUrl}" alt="${r.titolo}" style="max-width: 200px; height: auto;">
-                </div>
+                </div>`: ''}
             </div>
 
             <div class="execution-box">
@@ -154,7 +157,7 @@ export async function showRicetta(id) {
                     ${r.commenti && r.commenti.length > 0
             ? r.commenti.map(c => `
                             <div class="comment-card-aside" style="background: #fff; margin-bottom: 10px; padding: 10px; border-left: 4px solid orange;">
-                                <p>"${c.contenuto}"</p>
+                                <p>${c.contenuto}</p>
                                 <small>${c.autore} - ${new Date(c.data_commento).toLocaleDateString()}</small>
                             </div>
                             `).join('')
@@ -184,8 +187,12 @@ function copiaVersioneTesto() {
 }
 
 export async function saveComment(idRicetta) {
-    const autore = document.getElementById('new-comment-author').value;
-    const testo = document.getElementById('new-comment-text').value;
+    const autoreRaw = document.getElementById('new-comment-author').value.trim();
+    const testoRaw = document.getElementById('new-comment-text').value.trim();
+
+    // Trasforma la prima lettera in Maiuscolo e attacca il resto della stringa originale
+    const autore = autoreRaw ? autoreRaw.charAt(0).toUpperCase() + autoreRaw.slice(1) : "";
+    const testo = testoRaw ? testoRaw.charAt(0).toUpperCase() + testoRaw.slice(1) : "";
     if (!testo || !autore) { alert("Inserisci nome e commento!"); return; }
     const { error } = await _supabase.from('commenti').insert([{ fk_ricetta: idRicetta, autore: autore, contenuto: testo, data_commento: new Date().toISOString() }]);
     if (error) alert("Errore: " + error.message);
@@ -227,8 +234,10 @@ export async function segnaComeStampata(id) {
 
 window.attivaModificaDosi = (porzioniOriginali) => {
     const lista = document.getElementById('lista-ingredienti');
-    const wrappers = lista.querySelectorAll('.qty-wrapper');
+    if (!lista) return;
+    const nOriginale = (porzioniOriginali && !isNaN(porzioniOriginali)) ? parseFloat(porzioniOriginali) : 1;
 
+    const wrappers = lista.querySelectorAll('.qty-wrapper');
     wrappers.forEach((wrapper, index) => {
         const spanOriginale = wrapper.querySelector('.qty-value');
         if (!spanOriginale) return;
@@ -248,7 +257,7 @@ window.attivaModificaDosi = (porzioniOriginali) => {
 
             // Gestione eventi: Invio e uscita dal campo
             input.onkeydown = (e) => { if (e.key === 'Enter') input.blur(); };
-            input.onblur = () => ricalcolaDaIngrediente(index, porzioniOriginali);
+            input.onblur = () => ricalcolaDaIngrediente(index, nOriginale);
 
             wrapper.appendChild(input);
         }
@@ -261,13 +270,30 @@ window.attivaModificaDosi = (porzioniOriginali) => {
     if (!document.getElementById('input-porzioni')) {
         const box = document.querySelector('.ingredients-box');
         const divPorzioni = document.createElement('div');
+        const displayStatico = document.getElementById('display-porzioni');
+        let testoOriginale = displayStatico.innerText || 'porzioni';
+
+        if (displayStatico && displayStatico.innerText.trim() !== "") {
+            // Puliamo il testo statico per estrarre solo la parola descrittiva
+            testoOriginale = displayStatico.innerText
+                .replace('Dosi per:', '')
+                .replace(porzioniOriginali, '')
+                .trim();
+        }
+        if (!testoOriginale) testoOriginale = 'porzioni';
+
+        if (displayStatico) displayStatico.style.display = 'none';
+
         divPorzioni.className = "portions-edit-area";
         divPorzioni.innerHTML = `
-        < p style = "margin: 10px 0; font-size: 0.9rem; font-weight: bold;" >
-            Porzioni: <input type="number" id="input-porzioni" class="no-arrows" value="${porzioniOriginali}"
+        <div style = "margin: 10px 0; font-size: 0.9rem; font-weight: bold;" >
+            Dosi: <input type="number" id="input-porzioni" class="no-arrows" value="${nOriginale}"
                 onkeydown="if(event.key==='Enter') { this.blur(); }"
-                onblur="ricalcolaDaPorzioni(this.value, ${porzioniOriginali})">
-            </p>`;
+                onblur="ricalcolaDaPorzioni(this.value, ${nOriginale})">
+                <input type="text" id="input-testo-porzioni" 
+                       style="width: 100px; padding: 3px; border: 1px solid #ccc; border-radius: 4px;" 
+                       value="${testoOriginale}">
+            </div>`;
         box.insertBefore(divPorzioni, lista);
     }
 
