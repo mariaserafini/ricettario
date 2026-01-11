@@ -137,10 +137,10 @@ export async function showRicetta(id) {
                         ${tAgg && tAgg !== '0' ? `<span class="badge badge-time">⏳  ${tAgg}</span>` : ''}
                     </div>   
                 </div>
-                ${immagineUrl ? `
+               ${(immagineUrl && immagineUrl.trim() !== "") ? `
                 <div class="recipe-main-image">
-                    <img src="${immagineUrl}" style="max-width: 200px; height: auto;">
-                </div>`: ''}
+                    <img src="${immagineUrl}" style="max-width: 200px; height: auto;" onerror="this.parentElement.style.display='none'">
+                </div>` : ''}
             </div>
 
             <div class="execution-box">
