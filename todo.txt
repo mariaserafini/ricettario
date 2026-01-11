@@ -17,3 +17,5 @@ pg_dump -h aws-1-eu-north-1.pooler.supabase.com -p 5432 -U postgres.pbvjzvocwmfp
 
 
 controlla tPrep se viene preso correttamnte dal db
+
+

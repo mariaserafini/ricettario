@@ -14,6 +14,7 @@ export async function showRicetta(id) {
     window.segnaComeStampata = segnaComeStampata;
     window.editRicetta = () => showForm(id);
     window.eliminaRicetta = () => eliminaRicetta(id);
+    window.clonaRicetta = () => clonaRicetta(id);
     app.innerHTML = '<div class="loader">Caricamento ricetta...</div>';
     const { data: r, error } = await _supabase
         .from('ricette')
@@ -55,13 +56,13 @@ export async function showRicetta(id) {
             <div>
             <button class="btn-action-nav" onclick="editRicetta()">✏️ Modifica</button>
             <button class="btn-action-nav">🔗 Collega</button>
-            <button class="btn-action-nav">📋 Clona</button>
+            <button class="btn-action-nav" onclick="clonaRicetta()">📋 Clona</button>
             <button class="btn-action-nav btn-delete" onclick="eliminaRicetta()">🗑️ Elimina</button>
             </div>
             <button class="btn-print-text" onclick="copiaVersioneTesto()">📋 Copia Testo</button>
            <button class="btn-action-stampata ${r.stampata ? 'already-printed' : ''}" 
         onclick="segnaComeStampata(${r.pk_ricetta})">
-    <span>${r.stampata ? '✅' : '🖨️'}</span> 
+    ${r.stampata ? '✅' : '🖨️'}
     ${r.stampata ? 'Rimuovi da Stampate' : 'Segna come Stampata'}
 </button>
         </div>
@@ -69,18 +70,18 @@ export async function showRicetta(id) {
         <div class="recipe-header-centered">
             <h1>${r.titolo} ${r.etnica ? `<small>(${r.etnica})</small>` : ''}</h1>
             <div id="rating-area" class="interactive-rating">${renderStars(r.voto, r.pk_ricetta)}</div>
-            <button class="btn-toggle-view" onclick="togglePreferitaDettaglio(${r.pk_ricetta}, ${isFav})" title="Preferita">
+            <button class="btn-toggle-view btn-heart" onclick="togglePreferitaDettaglio(${r.pk_ricetta}, ${isFav})" title="Preferita">
             <span style="font-size: 1.5rem;">${isFav ? '❤️' : '🤍'}</span>
             </button>
             <span style="font-size: 1.5rem;">
             ${r.nascosta
-            ? `<button class="btn-toggle-view" onclick="toggleNascondi(${r.pk_ricetta}, true)" title="Mostra ricetta">
+            ? `<button class="btn-toggle-view btn-eye" onclick="toggleNascondi(${r.pk_ricetta}, true)" title="Mostra ricetta">
          <svg class="icon-eye" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
             <line x1="1" y1="1" x2="23" y2="23"></line>
          </svg>
        </button>`
-            : `<button class="btn-toggle-view" onclick="toggleNascondi(${r.pk_ricetta}, false)" title="Nascondi ricetta">
+            : `<button class="btn-toggle-view btn-eye" onclick="toggleNascondi(${r.pk_ricetta}, false)" title="Nascondi ricetta">
          <svg class="icon-eye" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
             <circle cx="12" cy="12" r="3"></circle>
@@ -138,7 +139,7 @@ export async function showRicetta(id) {
                 </div>
                 ${immagineUrl ? `
                 <div class="recipe-main-image">
-                    <img src="${immagineUrl}" alt="${r.titolo}" style="max-width: 200px; height: auto;">
+                    <img src="${immagineUrl}" style="max-width: 200px; height: auto;">
                 </div>`: ''}
             </div>
 
@@ -224,7 +225,7 @@ export async function segnaComeStampata(id) {
         const btn = document.querySelector('.btn-action-stampata');
         if (btn) {
             btn.classList.toggle('already-printed', nuovoStato);
-            btn.innerHTML = `< span > ${nuovoStato ? '✅' : '🖨️'}</span > ${nuovoStato ? 'Rimuovi da Stampate' : 'Segna come Stampata'} `;
+            btn.innerHTML = `${nuovoStato ? '✅' : '🖨️'} ${nuovoStato ? 'Rimuovi da Stampate' : 'Segna come Stampata'}`;
 
             // Aggiorniamo l'attributo onclick per il click successivo
             btn.setAttribute('onclick', `segnaComeStampata(${id})`);
@@ -371,3 +372,56 @@ window.togglePreferitaDettaglio = async (id, statoAttuale) => {
     const { error } = await _supabase.from('ricette').update({ preferita: nuovoStato }).eq('pk_ricetta', id);
     if (error) { alert(error.message); } else { showRicetta(id); }
 };
+
+/* da sistemare*/
+export async function clonaRicetta(id) {
+    // 1. Recupero dati completi come facciamo nella showRicetta
+    const { data: r, error } = await _supabase
+        .from('ricette')
+        .select(`*, ingredienti_ricette(quant, dettagli, fk_ingrediente, fk_misura, ingredienti(ingrediente))`)
+        .eq('pk_ricetta', id)
+        .single();
+
+    if (error) {
+        alert("Errore nel recupero dei dati per la clonazione: " + error.message);
+        return;
+    }
+
+    // 2. Prepariamo l'oggetto per il clone (pulizia dati univoci)
+    const datiClonati = {
+        titolo: `${r.titolo} (Copia)`, // Aggiungiamo (Copia) per distinguerla
+        esecuzione: r.esecuzione,
+        fk_cat: r.fk_cat,
+        n_porzioni: r.n_porzioni,
+        porzioni: r.porzioni,
+        cottura: r.cottura,
+        tempo_cottura_h: r.tempo_cottura_h,
+        tempo_cottura_m: r.tempo_cottura_m,
+        tempo_attesa_h: r.tempo_attesa_h,
+        tempo_attesa_m: r.tempo_attesa_m,
+        etnica: r.etnica,
+        difficolta: r.difficolta,
+        link_video: r.link_video,
+        // Reset dei campi che non vogliamo clonare tali e quali
+        voto: 0,
+        nascosta: false,
+        preferita: false,
+        stampata: false,
+        // Gestione immagine: decidiamo se clonare il link o no
+        url_immagine: r.url_immagine,
+
+        // Mappatura ingredienti per il formato richiesto dal form
+        ingredienti_ricette: r.ingredienti_ricette.map(ing => ({
+            quant: ing.quant,
+            dettagli: ing.dettagli,
+            fk_misura: ing.fk_misura,
+            // Passiamo il nome dell'ingrediente così addIngredienteRow lo pre-compila
+            ingrediente: ing.ingredienti?.ingrediente
+        }))
+    };
+
+    console.log("Dati pronti per il clone:", datiClonati);
+
+    // 3. Apriamo il form passando null come ID (nuova ricetta) e i dati
+    showForm(null, datiClonati);
+}

@@ -215,8 +215,6 @@ export async function eseguiRicerca() {
         if (stampate) query = query.eq('stampata', true);
         if (!showHidden) query = query.eq('nascosta', false);
         if (showHidden) query = query.eq('nascosta', true);
-        if (!showHidden) query = query.eq('preferita', false);
-        if (showHidden) query = query.eq('preferita', true);
 
         // Logica Categoria (Ordine_Query)
         if (catVal) {
