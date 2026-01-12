@@ -9,6 +9,7 @@ import { showForm, saveRicetta } from './form-ricetta.js';
 import { showImportTesto } from './import-testo.js';
 import { showImportFoto } from './import-foto.js';
 import { showPreferiti } from './preferiti.js';
+import { showCalendario } from './calendario.js';
 
 // 2. Rendile "Globali" (Parte A della mia risposta precedente)
 // Senza questo passaggio, onclick="showHome()" nell'HTML non funzionerebbe
@@ -43,6 +44,7 @@ window.showImportTesto = showImportTesto;
 window.showImportFoto = showImportFoto;
 
 window.showPreferiti = showPreferiti;
+window.showCalendario = showCalendario;
 
 // Cosa succede quando l'utente preme Indietro o F5
 window.onpopstate = () => gestisciPercorso();
@@ -74,6 +76,7 @@ window.naviga = (sezione, id = null) => {
         if (sezione === 'import-testo') showImportTesto();
         if (sezione === 'import-foto') showImportFoto();
         if (sezione === 'preferiti') showPreferiti();
+        if (pagina === 'calendario') showCalendario();
     }
 };
 
@@ -107,6 +110,9 @@ function gestisciPercorso() {
                 break;
             case 'preferiti':
                 showPreferiti();
+                break;
+            case 'calendario':
+                showCalendario();
                 break;
             default:
                 showHome();

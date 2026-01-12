@@ -67,6 +67,13 @@ input.no-arrows::-webkit-inner-spin-button {
     resize: vertical;
 }
 
+.autocomplete-results {
+    border: 1px solid #ddd;
+    max-height: 150px;
+    overflow-y: auto;
+    background: white;
+}
+
 .badges {
     display: flex;
     flex-wrap: wrap;
@@ -138,9 +145,28 @@ input.no-arrows::-webkit-inner-spin-button {
     cursor: pointer;
 }
 
+.btn-add-note {
+    background: #eee;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    line-height: 1;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.btn-add-note:hover {
+    background: #e67e22;
+    color: white;
+}
+
 /* Bottone Torna Indietro */
 .btn-back {
-    background-color: #f8f9fa;
+    background-color: #ea9850;
+    ;
     color: #555;
     border: 1px solid #ddd;
 }
@@ -166,9 +192,41 @@ input.no-arrows::-webkit-inner-spin-button {
     background: var(--primary-color);
 }
 
+.btn-del-cal {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(231, 76, 60, 0.8);
+    color: white;
+    border: none;
+    border-radius: 50%;
+}
+
 .btn-delete {
     color: #e74c3c;
     border-color: #fab1a0;
+}
+
+.btn-nav {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.btn-nav:hover {
+    background: #f0f0f0;
+    border-color: #bbb;
+}
+
+.btn-oggi {
+    background: #e8f5e9;
+    /* Un leggero tocco di verde per "Oggi" */
+    color: #2e7d32;
+    border-color: #c8e6c9;
 }
 
 .btn-portions {
@@ -189,7 +247,7 @@ input.no-arrows::-webkit-inner-spin-button {
 }
 
 .btn-print-text:hover {
-    background-color: #2c3e50;
+    background-color: #6895c3;
     box-shadow: 0 4px 12px rgba(52, 73, 94, 0.3);
 }
 
@@ -286,6 +344,65 @@ input.no-arrows::-webkit-inner-spin-button {
 
 .btn-toggle-view:hover {
     color: #2d3748;
+}
+
+.calendar-day-column {
+    background: #fff;
+    border-radius: 8px;
+    min-height: 400px;
+    border: 1px solid #eee;
+}
+
+/* Stile per la colonna del giorno corrente */
+.calendar-day-column.is-today {
+    background-color: #f1f8e9;
+    /* Un verde chiarissimo */
+    border: 2px solid #a5d6a7;
+    /* Bordo verde più definito */
+    transform: scale(1.02);
+    /* Leggermente più grande per risaltare */
+    z-index: 1;
+    /* Lo porta sopra i bordi delle altre colonne */
+}
+
+.calendar-day-column.is-today .day-label {
+    background-color: #4caf50;
+    /* Testata verde scuro */
+}
+
+.calendar-day-column.is-today .day-name,
+.calendar-day-column.is-today .day-number {
+    color: white;
+    /* Testo bianco sulla testata verde */
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    /* 7 colonne uguali */
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px 0;
+
+}
+
+.calendar-header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: #2e7d32;
+}
+
+/* Gruppo pulsanti di navigazione */
+.calendar-nav {
+    display: flex;
+    gap: 5px;
 }
 
 /* Corpo della Card */
@@ -438,6 +555,42 @@ input.no-arrows::-webkit-inner-spin-button {
 .comments-section h3 {
     margin-top: 0;
     /* Assicura che il titolo "Note precedenti" non abbia margini extra in alto */
+}
+
+.day-content {
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.day-label {
+    padding: 10px;
+    text-align: center;
+    background: #f8f9fa;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.day-name {
+    display: block;
+    font-size: 0.85rem;
+    color: #888;
+    text-transform: capitalize;
+}
+
+.day-number {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.day-number-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 5px;
 }
 
 .dropbtn {
@@ -610,14 +763,90 @@ input.no-arrows::-webkit-inner-spin-button {
     color: var(--primary-color);
 }
 
+.mini-img-wrapper {
+    position: relative;
+    width: 100%;
+    height: 120px;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #eee;
+}
+
+.mini-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Taglia l'immagine per riempire il rettangolo */
+    transition: transform 0.3s;
+}
+
+.mini-note-text {
+    font-size: 0.75rem;
+    color: #888;
+    margin-top: 4px;
+    font-style: italic;
+    line-height: 1.2;
+    /* Evita che note troppo lunghe rompano il layout */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.mini-title {
+    margin: 8px 0 0 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #2c3e50;
+    /* Tronca il testo se troppo lungo (come nello screenshot) */
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    /* Nascosto di default */
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.modal-content {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: var(--shadow);
+}
 
 .nav-actions {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     flex-wrap: wrap;
     margin-bottom: 25px;
-    justify-content: space-between;
+    justify-content: flex-start;
     width: 100%;
+    padding: 10px 0;
+    align-items: center;
+}
+
+.nav-actions button {
+    margin: 0 !important;
+    /* Rimuove eventuali margini che creano distanze strane */
+    white-space: nowrap;
+    /* Evita che il testo del bottone vada su due righe */
 }
 
 /* Navbar */
@@ -631,6 +860,29 @@ input.no-arrows::-webkit-inner-spin-button {
     top: 0;
     z-index: 1000;
     box-shadow: var(--shadow);
+}
+
+.note-card {
+    position: relative;
+    background: #fdfdfd;
+    /* Giallo post-it */
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border-left: 4px solid #bdc3c7;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.02);
+    font-size: 0.85rem;
+    color: #555;
+    min-height: 40px;
+    border: 1px solid #e0e0e0;
+
+}
+
+.note-card p {
+    margin: 0;
+    padding-right: 15px;
+    /* Spazio per la X di chiusura */
+    word-wrap: break-word;
 }
 
 .rating-stars {
@@ -656,6 +908,19 @@ input.no-arrows::-webkit-inner-spin-button {
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
     border-color: var(--primary-color);
     /* Il bordo diventa arancione al passaggio */
+}
+
+.recipe-card-mini {
+    position: relative;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.recipe-card-mini img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 6px;
 }
 
 .recipe-card.no-image .card-image-container {
@@ -721,6 +986,7 @@ input.no-arrows::-webkit-inner-spin-button {
     gap: 30px;
     align-items: start;
 }
+
 
 .recipe-header-centered {
     display: flex !important;
@@ -801,6 +1067,19 @@ input.no-arrows::-webkit-inner-spin-button {
     object-fit: cover;
 }
 
+.recipe-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.recipe-page-wrapper {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
 .recipe-top-row {
     display: flex;
     align-items: flex-start;
@@ -819,6 +1098,15 @@ input.no-arrows::-webkit-inner-spin-button {
     font-size: 1.2rem;
     margin-bottom: 20px;
     display: block;
+}
+
+.result-item {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.result-item:hover {
+    background: #f0f0f0;
 }
 
 .revision-area {
@@ -1018,6 +1306,10 @@ input.no-arrows::-webkit-inner-spin-button {
 
     .recipe-header-centered {
         flex-direction: column !important;
+    }
+
+    .calendar-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     }
 }
 

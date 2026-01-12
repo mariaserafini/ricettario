@@ -1,0 +1,152 @@
+import { _supabase, app } from './config.js';
+
+/**
+ * Visualizza il calendario settimanale
+ * @param {Date} dataRiferimento - Un giorno qualsiasi della settimana da visualizzare
+ */
+export async function showCalendario(dataRiferimento = new Date()) {
+    app.innerHTML = `<div class="loader">Caricamento piano settimanale...</div>`;
+
+    // 1. Calcolo del Lunedì della settimana selezionata
+    const d = new Date(dataRiferimento);
+    const day = d.getDay(); // 0 è domenica, 1 è lunedì...
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const lunedi = new Date(d.setDate(diff));
+    lunedi.setHours(0, 0, 0, 0);
+
+    const domenica = new Date(lunedi);
+    domenica.setDate(lunedi.getDate() + 6);
+    domenica.setHours(23, 59, 59, 999);
+
+    // Formattazione per la query Supabase
+    const startStr = lunedi.toISOString().split('T')[0];
+    const endStr = domenica.toISOString().split('T')[0];
+
+    // 2. Recupero dati da Supabase
+    const { data: pianificazioni, error } = await _supabase
+        .from('calendario_pianificazione')
+        .select(`
+        pk_cal,
+        data_pianificata,
+        nota,
+        fk_ricetta,
+        ricette (pk_ricetta, titolo, immagine)
+    `) // Aggiunto fk_ricetta qui
+        .gte('data_pianificata', startStr)
+        .lte('data_pianificata', endStr);
+
+    if (error) {
+        app.innerHTML = `<p>Errore nel caricamento: ${error.message}</p>`;
+        return;
+    }
+
+    // 3. Generazione HTML
+    const nomiMesi = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+    const giorniSettimana = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"];
+    const oggiStr = new Date().toLocaleString('sv-SE').split(' ')[0];
+
+    let html = `
+        <div class="calendar-header">
+            <h2>${nomiMesi[lunedi.getMonth()]} ${lunedi.getFullYear()}</h2>
+            <div class="calendar-nav">
+                <button class="btn-nav" onclick="navigazioneSettimana('${lunedi.toISOString()}', -7)">❮</button>
+                <button class="btn-nav btn-oggi" onclick="showCalendario()">Oggi</button>
+                <button class="btn-nav" onclick="navigazioneSettimana('${lunedi.toISOString()}', 7)">❯</button>
+            </div>
+        </div>
+        <div class="calendar-grid">
+    `;
+
+    // Creazione delle 7 colonne (una per ogni giorno)
+    for (let i = 0; i < 7; i++) {
+        const giornoCorrente = new Date(lunedi);
+        giornoCorrente.setDate(lunedi.getDate() + i);
+        const dataStr = giornoCorrente.toISOString().split('T')[0];
+
+        const isOggi = dataStr === oggiStr;
+        // Ricette previste per questo giorno
+        const ricetteDelGiorno = pianificazioni.filter(p => p.data_pianificata === dataStr);
+
+        html += `
+            <div class="calendar-day-column ${isOggi ? 'is-today' : ''}">
+                <div class="day-label">
+                    <div class="day-name">${giorniSettimana[i]}</div>
+                    <div class="day-number-container">
+                        <span class="day-number">${giornoCorrente.getDate()}</span>
+                        <button class="btn-add-note" onclick="aggiungiNota('${dataStr}')" title="Aggiungi nota">+</button>
+                    </div>
+            </div>
+            <div class="day-content">
+                ${ricetteDelGiorno.map(p => {
+            // CASO 1: È UNA NOTA DI TESTO (fk_ricetta è null)
+            if (!p.fk_ricetta) {
+                return `
+                            <div class="note-card">
+                                <p>${p.nota}</p>
+                            <button class="btn-del-cal" onclick="rimuoviDalCalendario(${p.pk_cal})">×</button>
+                            </div>
+                        `;
+            }
+            // CASO 2: È UNA RICETTA
+            return `
+                        <div class="recipe-card-mini" onclick="window.naviga('ricetta', ${p.ricette.pk_ricetta})">
+                        ${p.ricette.immagine ? `
+                <div class="mini-img-wrapper">
+                    <img src="${p.ricette.immagine}">
+                </div>
+            ` : '🍴'}
+                                <button class="btn-del-cal" onclick="event.stopPropagation(); rimuoviDalCalendario(${p.pk_cal})">×</button>
+                            
+                            <p class="mini-title">${p.ricette.titolo}</p>
+                            ${p.nota ? `<p class="mini-note-text">${p.nota}</p>` : ''}
+                        </div>
+                        `;
+        }).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    html += `</div>`;
+    app.innerHTML = html;
+}
+
+// --- Funzioni di supporto globali ---
+
+window.navigazioneSettimana = (dataStart, offset) => {
+    const d = new Date(dataStart);
+    d.setDate(d.getDate() + offset);
+    showCalendario(d);
+};
+
+window.rimuoviDalCalendario = async (idCal) => {
+    if (!confirm("Vuoi rimuovere questa ricetta dalla pianificazione?")) return;
+
+    const { error } = await _supabase
+        .from('calendario_pianificazione')
+        .delete()
+        .eq('pk_cal', idCal);
+
+    if (error) alert(error.message);
+    else showCalendario(); // Rinfresca la vista
+};
+
+window.aggiungiNota = async (data) => {
+    const testoNota = prompt("Cosa vuoi segnare per questo giorno?");
+
+    if (!testoNota || testoNota.trim() === "") return;
+
+    const { error } = await _supabase
+        .from('calendario_pianificazione')
+        .insert([{
+            data_pianificata: data,
+            nota: testoNota,
+            fk_ricetta: null // Esplicitiamo che non c'è una ricetta
+        }]);
+
+    if (error) {
+        alert("Errore: " + error.message);
+    } else {
+        showCalendario(new Date(data)); // Ricarica la vista sulla settimana corretta
+    }
+};

@@ -138,11 +138,14 @@ export async function showForm(id = null, prefillData = null) {
             m: parseInt(prefillData.tempo_attesa_m) || ""
         };
         tPrep = {
-            h: "",
-            m: ""
+            h: parseInt(prefillData.tempo_preparazione_h) || "",
+            m: parseInt(prefillData.tempo_preparazione_m) || ""
         };
-        r.n_porzioni = prefillData.n_porzioni
-        r.porzioni = prefillData.porzioni
+        r.n_porzioni = prefillData.n_porzioni;
+        r.porzioni = prefillData.porzioni;
+        r.diff = prefillData.diff || "";
+        r.autore = prefillData.autore || "";
+        r.etnica = prefillData.etnica || "";
 
         // Trasformiamo gli ingredienti nel formato che le tue righe del form leggono
 
@@ -380,6 +383,7 @@ export async function saveRicetta(e, id = null) {
         const getInterval = (idPrefix) => {
             const h = document.getElementById(`f-time-${idPrefix}-h`).value || 0;
             const m = document.getElementById(`f-time-${idPrefix}-m`).value || 0;
+            if (h === 0 && m === 0) return null;
             return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
         };
 

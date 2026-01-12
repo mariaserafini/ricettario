@@ -4,17 +4,18 @@
 import { _supabase, app } from './config.js';
 import { renderDifficolta, renderStars } from './ui.js';
 import { showForm } from './form-ricetta.js';
+import { apriCollegamento } from './links.js';
 
 export async function showRicetta(id) {
-    // questa riga l'ho commentata io perché mi diceva che newUrl non usata
-    // const newUrl = window.location.origin + window.location.pathname + '?id=' + id;
-    // globalità funzioni
     window.saveComment = saveComment;
     window.copiaVersioneTesto = copiaVersioneTesto;
     window.segnaComeStampata = segnaComeStampata;
     window.editRicetta = () => showForm(id);
     window.eliminaRicetta = () => eliminaRicetta(id);
     window.clonaRicetta = () => clonaRicetta(id);
+    window.apriCollegamento = () => apriCollegamento(r.pk_ricetta, r.titolo);
+    window.pianificaOggi = () => pianificaOggi(id);
+
     app.innerHTML = '<div class="loader">Caricamento ricetta...</div>';
     const { data: r, error } = await _supabase
         .from('ricette')
@@ -49,22 +50,67 @@ export async function showRicetta(id) {
     const tCott = formatTime(r.tempo_cottura);
     const tAgg = formatTime(r.tempo_agg);
 
+    // controllo se esistono ricette linkate
+    // Recupera i link dove la ricetta attuale è il punto A o il punto B
+    const { data: links, error: linkErr } = await _supabase
+        .from('link_ricette')
+        .select(`
+        doppio,
+        fk_ric1,
+        fk_ric2,
+        ricetta1:fk_ric1 (pk_ricetta, titolo),
+        ricetta2:fk_ric2 (pk_ricetta, titolo)
+    `)
+        .or(`fk_ric1.eq.${id},fk_ric2.eq.${id}`);
+
+    if (linkErr) {
+        console.error("Errore recupero link:", linkErr);
+        return;
+    }
+
+    const ricetteCollegate = links
+        .filter(l => {
+            // REGOLA:
+            // Mostra sempre se sono la sorgente (fk_ric1)
+            if (l.fk_ric1 == id) return true;
+
+            // Se sono la destinazione (fk_ric2), mostra SOLO SE è bidirezionale
+            if (l.fk_ric2 == id && l.doppio === true) return true;
+
+            // Altrimenti scarta (es: è un legame semplice verso di me, ma non da me)
+            return false;
+        })
+        .map(l => {
+            // Determiniamo qual è l'altra ricetta da mostrare
+            const altraRicetta = (l.fk_ric1 == id) ? l.ricetta2 : l.ricetta1;
+
+            return {
+                id: altraRicetta.pk_ricetta,
+                titolo: altraRicetta.titolo,
+                bidirezionale: l.doppio
+            };
+        });
+
     app.innerHTML = `
     <div class="recipe-page-wrapper" data-id="${r.pk_ricetta}">
         <div class="nav-actions">
-            <button class="btn-back" onclick="history.back()">← Torna Indietro</button>
-            <div>
+            <button class="btn-back" onclick="history.back()">← Indietro</button>
             <button class="btn-action-nav" onclick="editRicetta()">✏️ Modifica</button>
-            <button class="btn-action-nav">🔗 Collega</button>
+            <button class="btn-action-nav" onclick="apriCollegamento()">🔗 Collega</button>
             <button class="btn-action-nav" onclick="clonaRicetta()">📋 Clona</button>
             <button class="btn-action-nav btn-delete" onclick="eliminaRicetta()">🗑️ Elimina</button>
-            </div>
-            <button class="btn-print-text" onclick="copiaVersioneTesto()">📋 Copia Testo</button>
+            <button class="btn-action-nav" onclick="copiaVersioneTesto()">📋 Testo</button>
            <button class="btn-action-stampata ${r.stampata ? 'already-printed' : ''}" 
         onclick="segnaComeStampata(${r.pk_ricetta})">
     ${r.stampata ? '✅' : '🖨️'}
-    ${r.stampata ? 'Rimuovi da Stampate' : 'Segna come Stampata'}
+    ${r.stampata ? 'Stampata' : 'Stampa'}
 </button>
+            <button class="btn-print-text" onclick="pianificaOggi()" title="Cucina oggi">Oggi</button>
+            <button class="btn-print-text" onclick="document.getElementById('picker-data').showPicker()" title="Pianifica" style="position: relative;">
+                🗓️ Pianifica
+                <input type="date" id="picker-data" style="position:absolute; visibility:hidden; width:0;" onchange="salvaDataPianificata(this.value, ${r.pk_ricetta})">
+            </button>
+        </div>
         </div>
 
         <div class="recipe-header-centered">
@@ -151,7 +197,23 @@ export async function showRicetta(id) {
                 <div class="recipe-footer-meta">
                     <p><strong>Autore:</strong> ${r.autore} | <strong>Data:</strong> ${new Date(r.data).toLocaleDateString('it-IT')}</p>
                 </div>
-                
+
+                ${ricetteCollegate.length > 0 ? `
+                <div class="comments-section">
+                    <h3 style="color: #e67e22; margin-bottom: 10px;">🔗 Ricette Correlate:</h3>
+                    <ul style="list-style: none;">
+                    ${ricetteCollegate.map(link => `
+                        <li style="margin-bottom: 5px;">
+                            <a href="#" onclick="event.preventDefault(); window.naviga('ricetta', ${link.id})" style="text-decoration: none; color: #2c3e50;">
+                            ${link.titolo}
+                            </a>
+                        </li>
+                    `).join('')}
+                    </ul>
+                </div>
+                ` : ''}
+
+
                 <div class="comments-section">
                     <h3>Commenti</h3>
                     <div class="comments-list">
@@ -232,6 +294,16 @@ export async function segnaComeStampata(id) {
         }
     }
 }
+
+window.salvaDataPianificata = async (data, idRicetta) => {
+    if (!data) return;
+    const { error } = await _supabase
+        .from('calendario_pianificazione')
+        .insert([{ fk_ricetta: idRicetta, data_pianificata: data }]);
+
+    if (error) alert(error.message);
+    else alert("Pianificata con successo!");
+};
 
 window.attivaModificaDosi = (porzioniOriginali) => {
     const lista = document.getElementById('lista-ingredienti');
@@ -348,6 +420,16 @@ window.ricalcolaDaPorzioni = (nuoveP, originaliP) => {
     });
 };
 
+export async function pianificaOggi(id) {
+    const oggi = new Date().toISOString().split('T')[0];
+    const { error } = await _supabase
+        .from('calendario_pianificazione')
+        .insert([{ fk_ricetta: id, data_pianificata: oggi }]);
+
+    if (error) alert("Errore: " + error.message);
+    else alert("Ricetta aggiunta a oggi!");
+};
+
 
 export async function eliminaRicetta(id) {
     if (!confirm("Sei sicuro di voler eliminare definitivamente questa ricetta?")) return;
@@ -386,36 +468,42 @@ export async function clonaRicetta(id) {
         alert("Errore nel recupero dei dati per la clonazione: " + error.message);
         return;
     }
-
+    // funzione interna per separare i tempi
+    const formatTime = (t) => {
+        if (!t || t === "00:00:00") return { h: 0, m: 0 };
+        const parti = t.split(':');
+        const h = parseInt(parti[0]);
+        const m = parseInt(parti[1]);
+        if (h > 0 && m > 0) return { h: h, m: m };
+        if (h > 0) return { h: h, m: 0 };
+        return { h: 0, m: m };
+    };
     // 2. Prepariamo l'oggetto per il clone (pulizia dati univoci)
+    const tempoPreparazione = formatTime(r.tempo_preparazione);
+    const tempoCottura = formatTime(r.tempo_cottura);
+    const tempoAgg = formatTime(r.tempo_agg);
+    console.log("Tempi formattati:", { tempoPreparazione, tempoCottura, tempoAgg });
+
     const datiClonati = {
-        titolo: `${r.titolo} (Copia)`, // Aggiungiamo (Copia) per distinguerla
+        titolo: r.titolo,
         esecuzione: r.esecuzione,
         fk_cat: r.fk_cat,
         n_porzioni: r.n_porzioni,
         porzioni: r.porzioni,
         cottura: r.cottura,
-        tempo_cottura_h: r.tempo_cottura_h,
-        tempo_cottura_m: r.tempo_cottura_m,
-        tempo_attesa_h: r.tempo_attesa_h,
-        tempo_attesa_m: r.tempo_attesa_m,
+        tempo_cottura_h: tempoCottura.h,
+        tempo_cottura_m: tempoCottura.m,
+        tempo_attesa_h: tempoAgg.h,
+        tempo_attesa_m: tempoAgg.m,
+        tempo_preparazione_h: tempoPreparazione.h,
+        tempo_preparazione_m: tempoPreparazione.m,
         etnica: r.etnica,
-        difficolta: r.difficolta,
-        link_video: r.link_video,
-        // Reset dei campi che non vogliamo clonare tali e quali
-        voto: 0,
-        nascosta: false,
-        preferita: false,
-        stampata: false,
-        // Gestione immagine: decidiamo se clonare il link o no
-        url_immagine: r.url_immagine,
-
+        diff: r.diff,
         // Mappatura ingredienti per il formato richiesto dal form
         ingredienti_ricette: r.ingredienti_ricette.map(ing => ({
             quant: ing.quant,
             dettagli: ing.dettagli,
             fk_misura: ing.fk_misura,
-            // Passiamo il nome dell'ingrediente così addIngredienteRow lo pre-compila
             ingrediente: ing.ingredienti?.ingrediente
         }))
     };
