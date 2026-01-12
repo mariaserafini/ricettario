@@ -862,6 +862,18 @@ input.no-arrows::-webkit-inner-spin-button {
     box-shadow: var(--shadow);
 }
 
+.nota-link {
+    color: #3498db;
+    text-decoration: underline;
+    font-weight: bold;
+    word-break: break-all;
+    /* Evita che link lunghissimi escano dalla card */
+}
+
+.nota-link:hover {
+    color: #2980b9;
+}
+
 .note-card {
     position: relative;
     background: #fdfdfd;

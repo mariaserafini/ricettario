@@ -4,6 +4,31 @@ import { _supabase, app } from './config.js';
  * Visualizza il calendario settimanale
  * @param {Date} dataRiferimento - Un giorno qualsiasi della settimana da visualizzare
  */
+
+function formattaTestoNota(testo) {
+    if (!testo) return '';
+
+    // Regex per estrarre l'URL
+    const urlRegex = /(https?:\/\/[^\s]+)/;
+    const match = testo.match(urlRegex);
+
+    if (match) {
+        const url = match[0];
+        // Rimuoviamo l'URL dal testo originale per vedere se rimane altro (l'etichetta)
+        let label = testo.replace(url, '').trim();
+
+        // Se dopo aver tolto l'URL non rimane testo, usiamo l'URL accorciato come label
+        if (label === "") {
+            label = url.length > 30 ? url.substring(0, 27) + "..." : url;
+        }
+
+        return `<a href="${url}" target="_blank" class="nota-link" onclick="event.stopPropagation()">${label}</a>`;
+    }
+
+    // Se non c'è nessun link, restituisci il testo normale
+    return testo;
+}
+
 export async function showCalendario(dataRiferimento = new Date()) {
     app.innerHTML = `<div class="loader">Caricamento piano settimanale...</div>`;
 
@@ -82,7 +107,7 @@ export async function showCalendario(dataRiferimento = new Date()) {
             if (!p.fk_ricetta) {
                 return `
                             <div class="note-card">
-                                <p>${p.nota}</p>
+                                <p>${formattaTestoNota(p.nota)}</p>
                             <button class="btn-del-cal" onclick="rimuoviDalCalendario(${p.pk_cal})">×</button>
                             </div>
                         `;
@@ -98,7 +123,7 @@ export async function showCalendario(dataRiferimento = new Date()) {
                                 <button class="btn-del-cal" onclick="event.stopPropagation(); rimuoviDalCalendario(${p.pk_cal})">×</button>
                             
                             <p class="mini-title">${p.ricette.titolo}</p>
-                            ${p.nota ? `<p class="mini-note-text">${p.nota}</p>` : ''}
+                            ${p.nota ? `<p class="mini-note-text">${formattaTestoNota(p.nota)}</p>` : ''}
                         </div>
                         `;
         }).join('')}

@@ -1,5 +1,5 @@
-- menu settimanale
 - filtro per ricette che non hanno foto 
+- predisporre link a cookido o siti esterni
 
 per avviare il server locale:
 python3 -m http.server 8000
@@ -13,5 +13,3 @@ export PGPASSWORD='....' (metti pswd corretta)
 3. attenzione al server aws che sia lo stesso riportato nella pagina di supabase
 pg_dump -h aws-1-eu-north-1.pooler.supabase.com -p 5432 -U postgres.pbvjzvocwmfpdugktcro -d postgres > backup_ricette.sql
 
-
-predisporre link a cookido o siti esterni
