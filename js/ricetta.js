@@ -421,7 +421,13 @@ window.ricalcolaDaPorzioni = (nuoveP, originaliP) => {
 };
 
 export async function pianificaOggi(id) {
+    //problemi con fuso orario  
     const oggi = new Date().toISOString().split('T')[0];
+    /*  const oggiLocale = new Date();
+      const anno = oggiLocale.getFullYear();
+      const mese = String(oggiLocale.getMonth() + 1).padStart(2, '0');
+      const giorno = String(oggiLocale.getDate()).padStart(2, '0');
+      const oggi = `${anno}-${mese}-${giorno}`;*/
     const { error } = await _supabase
         .from('calendario_pianificazione')
         .insert([{ fk_ricetta: id, data_pianificata: oggi }]);

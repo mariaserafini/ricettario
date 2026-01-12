@@ -84,13 +84,19 @@ export async function showCalendario(dataRiferimento = new Date()) {
 
     // Creazione delle 7 colonne (una per ogni giorno)
     for (let i = 0; i < 7; i++) {
-        const giornoCorrente = new Date(lunedi);
+        const giornoCorrente = new Date(lunedi.getTime());
         giornoCorrente.setDate(lunedi.getDate() + i);
-        const dataStr = giornoCorrente.toISOString().split('T')[0];
+
+        // --- CORREZIONE: Generiamo la stringa YYYY-MM-DD usando la data LOCALE ---
+        const yyyy = giornoCorrente.getFullYear();
+        const mm = String(giornoCorrente.getMonth() + 1).padStart(2, '0');
+        const dd = String(giornoCorrente.getDate()).padStart(2, '0');
+        const dataStr = `${yyyy}-${mm}-${dd}`;
 
         const isOggi = dataStr === oggiStr;
         // Ricette previste per questo giorno
         const ricetteDelGiorno = pianificazioni.filter(p => p.data_pianificata === dataStr);
+        console.log(giornoCorrente, dataStr, ricetteDelGiorno);
 
         html += `
             <div class="calendar-day-column ${isOggi ? 'is-today' : ''}">

@@ -1,5 +1,4 @@
 - filtro per ricette che non hanno foto 
-- predisporre link a cookido o siti esterni
 
 per avviare il server locale:
 python3 -m http.server 8000
