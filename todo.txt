@@ -1,4 +1,6 @@
 - filtro per ricette che non hanno foto 
+- lista della spesa ? 
+- app per prezzi prodotti
 
 per avviare il server locale:
 python3 -m http.server 8000
@@ -10,5 +12,6 @@ per fare backup del db
 2. da shell
 export PGPASSWORD='....' (metti pswd corretta)
 3. attenzione al server aws che sia lo stesso riportato nella pagina di supabase
+NB: Clicca connect e poi sul menu direct connection --> session pooler
 pg_dump -h aws-1-eu-north-1.pooler.supabase.com -p 5432 -U postgres.pbvjzvocwmfpdugktcro -d postgres > backup_ricette.sql
 
