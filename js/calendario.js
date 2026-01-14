@@ -32,7 +32,7 @@ function formattaTestoNota(testo) {
 export async function showCalendario(dataRiferimento = new Date()) {
     app.innerHTML = `<div class="loader">Caricamento piano settimanale...</div>`;
     const isMobile = window.innerWidth < 768;
-    const numeroGiorniMostrati = isMobile ? 4 : 7;
+    const numeroGiorniMostrati = isMobile ? 3 : 7;
     let dataPartenza;
 
     const d = new Date(dataRiferimento);
