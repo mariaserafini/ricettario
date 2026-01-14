@@ -151,31 +151,40 @@ export async function showForm(id = null, prefillData = null) {
 
         // 1. MAPPA GLI INGREDIENTI (Rimuovi la riga 'const misuraTrovata' che avevi prima di questa)
         r.ingredienti_ricette = (prefillData.ingredienti_ricette || []).map(i => {
+            if (i.unita_testo) {
+                // 2. Definiamo e normalizziamo il testo dell'unità
+                let testoUnita = i.unita_testo?.toLowerCase().trim() || "";
 
-            // 2. Definiamo e normalizziamo il testo dell'unità
-            let testoUnita = i.unita_testo?.toLowerCase().trim() || "";
+                // Piccola correzione: se l'utente scrive 'g', noi cerchiamo 'gr' (o viceversa, dipende dal tuo DB)
+                if (testoUnita === 'g') testoUnita = 'gr';
 
-            // Piccola correzione: se l'utente scrive 'g', noi cerchiamo 'gr' (o viceversa, dipende dal tuo DB)
-            if (testoUnita === 'g') testoUnita = 'gr';
+                if (testoUnita === 'chilogrammi' || testoUnita === 'kg') {
+                    testoUnita = 'gr'; // o 'kg' se preferisci, l'importante è che corrisponda al DB
+                    i.quant = parseFloat(i.quant) * 1000;
+                }
 
-            if (testoUnita === 'chilogrammi' || testoUnita === 'kg') {
-                testoUnita = 'gr'; // o 'kg' se preferisci, l'importante è che corrisponda al DB
-                i.quant = parseFloat(i.quant) * 1000;
+                // 3. ORA cerchiamo nel DB usando la variabile 'testoUnita' appena preparata
+                const misuraTrovata = resMisure.data.find(m =>
+                    m.misura && m.misura.toLowerCase() === testoUnita
+                );
+                return {
+                    ingrediente: i.ingrediente,
+                    quant: i.quant,
+                    fk_misura: misuraTrovata ? misuraTrovata.pk_misura : null,
+                    // Se non troviamo la misura, uniamo l'unità originale ai dettagli
+                    dettagli: misuraTrovata
+                        ? (i.dettagli || '')
+                        : [i.unita_testo, i.dettagli].filter(Boolean).join(' ')
+                };
+            } else {
+                // se clonata ho già fk_misura
+                return {
+                    ingrediente: i.ingrediente,
+                    quant: i.quant || null,
+                    fk_misura: i.fk_misura || null,
+                    dettagli: i.dettagli || ''
+                };
             }
-
-            // 3. ORA cerchiamo nel DB usando la variabile 'testoUnita' appena preparata
-            const misuraTrovata = resMisure.data.find(m =>
-                m.misura && m.misura.toLowerCase() === testoUnita
-            );
-            return {
-                ingrediente: i.ingrediente,
-                quant: i.quant,
-                fk_misura: misuraTrovata ? misuraTrovata.pk_misura : null,
-                // Se non troviamo la misura, uniamo l'unità originale ai dettagli
-                dettagli: misuraTrovata
-                    ? (i.dettagli || '')
-                    : [i.unita_testo, i.dettagli].filter(Boolean).join(' ')
-            };
         });
     }
 

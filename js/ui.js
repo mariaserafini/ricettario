@@ -67,7 +67,7 @@ export function formattaTempo(minutiTotali) {
 export function renderRecipeCard(r) {
     const catBase = r.categorie?.categoria || 'Ricetta';
     const sottoCat = r.categorie?.sottocategoria;
-    const categoriaVisualizzata = sottoCat ? `${catBase}: ${sottoCat}` : catBase;
+    const categoriaVisualizzata = sottoCat ? sottoCat : catBase;
 
     const tCott = convertiInMinuti(r.tempo_cottura);
     const tPrep = convertiInMinuti(r.tempo_preparazione);

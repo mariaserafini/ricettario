@@ -6,4 +6,4 @@ export const app = document.getElementById('app');
 const _p1 = "AIzaSyDLwfdxJ";
 const _p2 = "ohBvXy";
 const _p3 = "SSl2890yIAN0VWdD7o";
-export const GEMINI_KEY = _p1 + "-" + _p2 + "-" + _p3;
+export const GEMINI_API_KEY = _p1 + "-" + _p2 + "-" + _p3;

@@ -153,7 +153,7 @@ export async function showRicetta(id) {
                                     <strong class="qty-value" data-base="${ing.quant || ''}">${ing.quant || ''}</strong>
                                 </span>
                                 <strong>${ing.misure?.misura || ''}</strong> 
-                                ${ing.ingredienti?.ingrediente}
+                                ${ing.ingredienti?.ingrediente} ${ing.dettagli || ''}
                             </li>
                         `).join('')}
                     </ul>
