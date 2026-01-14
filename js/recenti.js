@@ -10,6 +10,7 @@ export async function showLatest() {
         .from('ricette')
         .select(`pk_ricetta, titolo, autore, voto, immagine, nascosta, data, tempo_cottura, tempo_preparazione, tempo_agg, immagine, categorie(categoria)`)
         .order('data', { ascending: false })
+        .order('pk_ricetta', { ascending: false })
         .limit(36);
 
     if (error) {
