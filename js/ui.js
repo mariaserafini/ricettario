@@ -169,3 +169,30 @@ export async function togglePreferita(id, statoAttuale) {
         btn.setAttribute('onclick', `event.preventDefault(); event.stopPropagation(); togglePreferita(${id}, ${nuovoStato})`);
     }
 }
+
+let wakeLock = null;
+
+export async function attivaSchermoSempreAcceso() {
+    // Controlla se il browser supporta questa funzione
+    if ('wakeLock' in navigator) {
+        try {
+            wakeLock = await navigator.wakeLock.request('screen');
+            console.log('Display Wake Lock attivo: lo schermo non si spegnerà.');
+
+            // Se l'app viene messa in background e poi riaperta, dobbiamo riattivarlo
+            wakeLock.addEventListener('release', () => {
+                console.log('Wake Lock rilasciato.');
+            });
+        } catch (err) {
+            console.error(`${err.name}, ${err.message}`);
+        }
+    } else {
+        console.warn("Wake Lock API non supportata da questo browser.");
+    }
+}
+
+document.addEventListener('visibilitychange', async () => {
+    if (wakeLock !== null && document.visibilityState === 'visible') {
+        attivaSchermoSempreAcceso();
+    }
+});

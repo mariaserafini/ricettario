@@ -2,11 +2,12 @@
  * DETTAGLIO RICETTA
  */
 import { _supabase, app } from './config.js';
-import { renderDifficolta, renderStars } from './ui.js';
+import { renderDifficolta, renderStars, attivaSchermoSempreAcceso } from './ui.js';
 import { showForm } from './form-ricetta.js';
 import { apriCollegamento } from './links.js';
 
 export async function showRicetta(id) {
+    attivaSchermoSempreAcceso();
     window.saveComment = saveComment;
     window.copiaVersioneTesto = copiaVersioneTesto;
     window.segnaComeStampata = segnaComeStampata;

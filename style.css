@@ -378,8 +378,6 @@ input.no-arrows::-webkit-inner-spin-button {
 
 .calendar-grid {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    /* 7 colonne uguali */
     gap: 10px;
     margin-top: 20px;
 }
@@ -1320,8 +1318,13 @@ input.no-arrows::-webkit-inner-spin-button {
         flex-direction: column !important;
     }
 
-    .calendar-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    .day-name {
+        font-size: 0.8rem;
+        /* Testi un po' più piccoli su mobile */
+    }
+
+    .day-number {
+        font-size: 1rem;
     }
 }
 
