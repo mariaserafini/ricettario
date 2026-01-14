@@ -76,7 +76,7 @@ window.naviga = (sezione, id = null) => {
         if (sezione === 'import-testo') showImportTesto();
         if (sezione === 'import-foto') showImportFoto();
         if (sezione === 'preferiti') showPreferiti();
-        if (pagina === 'calendario') showCalendario();
+        if (sezione === 'calendario') showCalendario();
     }
 };
 
