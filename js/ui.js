@@ -109,7 +109,7 @@ export function renderRecipeCard(r) {
                 
                 <div class="card-footer-info">
                     ${minutiTotali > 0 ? `<span class="time-info">🕒 ${tempoVisualizzato}</span>` : '<span></span>'}
-                    ${r.autore ? `<span class="author-info">di ${r.autore}</span>` : ''}
+                    ${r.autore ? `<span class="author-info">${r.autore}</span>` : ''}
                 </div>
             </div>
         </a>
