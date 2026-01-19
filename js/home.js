@@ -19,7 +19,7 @@ export async function showHome() {
     let html = `<section class="home-header"><h3>Lasciati ispirare</h3></section><div class="recipe-grid">`;
 
     const promesseRicette = categorieUniche.map(cat =>
-        _supabase.from('ricette').select(`pk_ricetta, titolo, autore, voto, immagine, preferita, tempo_cottura, tempo_preparazione, tempo_agg, categorie!inner (categoria)`).eq('categorie.categoria', cat.categoria).eq('nascosta', false)
+        _supabase.from('ricette').select(`pk_ricetta, titolo, autore, voto, immagine, preferita, tempo_cottura, tempo_preparazione, tempo_agg, categorie!inner (categoria, sottocategoria)`).eq('categorie.categoria', cat.categoria).eq('nascosta', false)
     );
 
     const risultati = await Promise.all(promesseRicette);
