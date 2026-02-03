@@ -8,9 +8,9 @@ python3 -m http.server 8000
 per fare backup del db 
 1. abilita la connessione con ipv4:
 - icona connect in alto 
-- clicca su session pooler e abilitalo
+- clicca su session pooler e abilitalo (nel menu "method")
 2. da shell
-export PGPASSWORD='....' (metti pswd corretta)
+export PGPASSWORD='....' (metti pswd corretta --> quella di mariaserafini's Project)
 3. attenzione al server aws che sia lo stesso riportato nella pagina di supabase
 NB: Clicca connect e poi sul menu direct connection --> session pooler
 pg_dump -h aws-1-eu-north-1.pooler.supabase.com -p 5432 -U postgres.pbvjzvocwmfpdugktcro -d postgres > backup_ricette.sql
