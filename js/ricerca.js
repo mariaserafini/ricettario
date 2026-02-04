@@ -109,6 +109,7 @@ export async function showSearch() {
                             <option value="1">Almeno 1 ⭐</option>
                             <option value="3">Almeno 3 ⭐⭐⭐</option>
                             <option value="5">Solo 5 ⭐⭐⭐⭐⭐</option>
+                            <option value= "-1"> Mai provate</option>
                         </select>
                     </div>
                 </div>
@@ -212,6 +213,7 @@ export async function eseguiRicerca() {
         if (etnica) query = query.eq('etnica', etnica);
         if (metodo) query = query.eq('cottura', metodo);
         if (votoMin > 0) query = query.gte('voto', votoMin);
+        if (votoMin == -1) query = query.is('voto', null);
         if (stampate) query = query.eq('stampata', true);
         if (!showHidden) query = query.eq('nascosta', false);
         if (showHidden) query = query.eq('nascosta', true);
