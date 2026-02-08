@@ -10,7 +10,6 @@ export async function showRicetta(id) {
     attivaSchermoSempreAcceso();
     window.saveComment = saveComment;
     window.copiaVersioneTesto = copiaVersioneTesto;
-    window.segnaComeStampata = segnaComeStampata;
     window.editRicetta = () => showForm(id);
     window.eliminaRicetta = () => eliminaRicetta(id);
     window.clonaRicetta = () => clonaRicetta(id);
@@ -101,11 +100,7 @@ export async function showRicetta(id) {
             <button class="btn-action-nav" onclick="clonaRicetta()">📋 Clona</button>
             <button class="btn-action-nav btn-delete" onclick="eliminaRicetta()">🗑️ Elimina</button>
             <button class="btn-action-nav" onclick="copiaVersioneTesto()">📋 Testo</button>
-           <button class="btn-action-stampata ${r.stampata ? 'already-printed' : ''}" 
-        onclick="segnaComeStampata(${r.pk_ricetta})">
-    ${r.stampata ? '✅' : '🖨️'}
-    ${r.stampata ? 'Stampata' : 'Stampa'}
-</button>
+           
             <button class="btn-print-text" onclick="pianificaOggi()" title="Cucina oggi">Oggi</button>
             <button class="btn-print-text" onclick="document.getElementById('picker-data').showPicker()" title="Pianifica" style="position: relative;">
                 🗓️ Pianifica
@@ -263,38 +258,6 @@ export async function saveComment(idRicetta) {
     else { document.getElementById('new-comment-text').value = ''; showRicetta(idRicetta); }
 }
 
-export async function segnaComeStampata(id) {
-    // 1. Preleviamo lo stato attuale direttamente dal DB per essere sicuri al 100%
-    const { data: ricetta } = await _supabase
-        .from('ricette')
-        .select('stampata')
-        .eq('pk_ricetta', id)
-        .single();
-
-    // 2. Invertiamo lo stato recuperato dal DB
-    const nuovoStato = !ricetta.stampata;
-
-    // 3. Eseguiamo l'aggiornamento
-    const { error } = await _supabase
-        .from('ricette')
-        .update({ stampata: nuovoStato })
-        .eq('pk_ricetta', id);
-
-    if (error) {
-        alert("Errore nell'aggiornamento: " + error.message);
-    } else {
-        // 4. Invece di ricaricare tutto, cambiamo solo l'aspetto del tasto al volo
-        // Questo garantisce che l'utente veda subito il cambio senza attendere ricaricamenti
-        const btn = document.querySelector('.btn-action-stampata');
-        if (btn) {
-            btn.classList.toggle('already-printed', nuovoStato);
-            btn.innerHTML = `${nuovoStato ? '✅' : '🖨️'} ${nuovoStato ? 'Rimuovi da Stampate' : 'Segna come Stampata'}`;
-
-            // Aggiorniamo l'attributo onclick per il click successivo
-            btn.setAttribute('onclick', `segnaComeStampata(${id})`);
-        }
-    }
-}
 
 window.salvaDataPianificata = async (data, idRicetta) => {
     if (!data) return;
