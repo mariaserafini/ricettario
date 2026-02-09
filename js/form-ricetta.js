@@ -56,6 +56,22 @@ window.addIngredienteRow = (data = null) => {
             &times;
         </button>
     `;
+    const inputNome = row.querySelector('.ing-nome');
+    inputNome.addEventListener('blur', () => {
+        const tuttiInp = document.querySelectorAll('.ing-nome');
+        const valori = Array.from(tuttiInp)
+            .map(i => i.value.trim().toLowerCase())
+            .filter(v => v !== "");
+
+        // Verifica se il valore appena inserito esiste già altrove
+        const duplicati = valori.filter((item, index) => valori.indexOf(item) !== index);
+        if (duplicati.includes(inputNome.value.trim().toLowerCase())) {
+            inputNome.style.border = "2px solid #e74c3c";
+            alert("Hai già aggiunto questo ingrediente a questa ricetta!");
+        } else {
+            inputNome.style.border = "";
+        }
+    });
     container.appendChild(row);
 };
 
