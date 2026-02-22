@@ -119,12 +119,13 @@ export async function showCalendario(dataRiferimento = new Date()) {
         const isOggi = dataStr === oggiStr;
         // Ricette previste per questo giorno
         const ricetteDelGiorno = pianificazioni.filter(p => p.data_pianificata === dataStr);
-
+        const dayIndex = giornoCorrente.getDay();
+        const adjustedIndex = dayIndex === 0 ? 6 : dayIndex - 1;
 
         html += `
          <div class="calendar-day-column ${isOggi ? 'is-today' : ''}">
              <div class="day-label">
-                 <div class="day-name">${giorniSettimana[i]}</div>
+                 <div class="day-name">${giorniSettimana[adjustedIndex]}</div>
                  <div class="day-number-container">
                      <span class="day-number">${giornoCorrente.getDate()}</span>
                      <button class="btn-add-note" onclick="aggiungiNota('${dataStr}')" title="Aggiungi nota">+</button>
