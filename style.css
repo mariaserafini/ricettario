@@ -192,6 +192,20 @@ input.no-arrows::-webkit-inner-spin-button {
     background: var(--primary-color);
 }
 
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+
 .btn-del-cal {
     position: absolute;
     top: 5px;
@@ -474,6 +488,14 @@ input.no-arrows::-webkit-inner-spin-button {
     object-fit: cover;
 }
 
+.card-manutenzione {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
 .card-wrapper {
     transition: transform 0.2s;
 }
@@ -653,6 +675,11 @@ input.no-arrows::-webkit-inner-spin-button {
     font-size: 1rem;
 }
 
+.freccia {
+    color: #999;
+    font-weight: bold;
+}
+
 .icon-eye {
     width: 24px;
     height: 24px;
@@ -678,6 +705,48 @@ input.no-arrows::-webkit-inner-spin-button {
     font-weight: bold;
     color: #ff4757;
     width: 60px;
+}
+
+.item-raro {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    background: #fdfdfd;
+    border-radius: 6px;
+    border-left: 4px solid #f39c12;
+    /* Un richiamo al colore "nuovo/raro" */
+}
+
+.link-ricetta {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.link-ricetta:hover {
+    text-decoration: underline;
+    color: #2980b9;
+}
+
+.lista-check {
+    column-count: 2;
+    /* Divide la lista su due colonne per risparmiare spazio */
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.lista-rari li {
+    color: #2c3e50;
+}
+
+.lista-rari-dettagli {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .login-box {
@@ -1258,6 +1327,26 @@ input.no-arrows::-webkit-inner-spin-button {
 .tag-remove {
     cursor: pointer;
     font-weight: bold;
+}
+
+.tag-orfano,
+.tag-raro {
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    border: 1px solid #ddd;
+}
+
+.tag-orfano {
+    background-color: #fceae8;
+    color: #c0392b;
+    border-color: #f5c6cb;
+}
+
+.tag-raro {
+    background-color: #fff3cd;
+    color: #856404;
+    border-color: #ffeeba;
 }
 
 /* --- 2. CONFIGURAZIONE MOBILE (SEMPRE IN FONDO AL FILE) --- */

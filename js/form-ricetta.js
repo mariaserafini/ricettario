@@ -1,5 +1,6 @@
 import { _supabase, app } from './config.js';
 let misureGlobali = [];
+let ingredientiEsistentiDB = [];
 // 4. Funzione interna per aggiungere righe ingredienti
 window.addIngredienteRow = (data = null) => {
 
@@ -58,19 +59,37 @@ window.addIngredienteRow = (data = null) => {
     `;
     const inputNome = row.querySelector('.ing-nome');
     inputNome.addEventListener('blur', () => {
+        const valorePulito = inputNome.value.trim().toLowerCase();
+        if (!valorePulito) {
+            inputNome.style.border = "";
+            return;
+        }
         const tuttiInp = document.querySelectorAll('.ing-nome');
         const valori = Array.from(tuttiInp)
             .map(i => i.value.trim().toLowerCase())
             .filter(v => v !== "");
 
-        // Verifica se il valore appena inserito esiste già altrove
-        const duplicati = valori.filter((item, index) => valori.indexOf(item) !== index);
-        if (duplicati.includes(inputNome.value.trim().toLowerCase())) {
-            inputNome.style.border = "2px solid #e74c3c";
+        // controllo se il valore è duplicato tra gli input (escluso se stesso)
+        const isDuplicatoInPagina = valori.filter(v => v === valorePulito).length > 1;
+
+        if (isDuplicatoInPagina) {
+            inputNome.style.border = "2px solid #e74c3c"; // Rosso
             alert("Hai già aggiunto questo ingrediente a questa ricetta!");
-        } else {
-            inputNome.style.border = "";
+            return; // Esci: il rosso vince sull'arancione
         }
+        const esisteNelDB = ingredientiEsistentiDB.some(i =>
+            i.ingrediente.toLowerCase() === valorePulito
+        );
+        // controllo se esiste già nel DB (solo se non è duplicato in pagina) se no coloro di arancione
+        if (!esisteNelDB) {
+            inputNome.style.border = "2px solid #f39c12"; // Arancione
+            inputNome.title = "Nuovo ingrediente: non presente in archivio";
+        } else {
+            // Se non è né duplicato né nuovo, pulisci lo stile
+            inputNome.style.border = "";
+            inputNome.title = "";
+        }
+
     });
     container.appendChild(row);
 };
@@ -88,6 +107,7 @@ export async function showForm(id = null, prefillData = null) {
         _supabase.from('ricette').select('cottura').not('cottura', 'is', null)
     ]);
     misureGlobali = resMisure.data;
+    ingredientiEsistentiDB = resTuttiIng.data;
 
     // Creiamo liste uniche per i suggerimenti
     const listaEtnica = [...new Set(resEtnica.data.map(r => r.etnica))].filter(Boolean).sort();
