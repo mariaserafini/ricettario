@@ -117,6 +117,9 @@ function gestisciPercorso() {
             case 'calendario':
                 showCalendario();
                 break;
+            case 'manutenzione':
+                showManutenzione();
+                break;
             default:
                 showHome();
                 break;
