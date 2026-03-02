@@ -55,7 +55,7 @@ export async function showManutenzione() {
                             <div class="item-raro">
                                 <span class="tag-raro">${i.ingrediente}</span>
                                 <span class="freccia">→</span>
-                                <a href="#" class="link-ricetta" onclick="naviga('ricetta', ${ricetta.pk_ricetta})">
+                                <a href="?id=${ricetta.pk_ricetta}" class="link-ricetta" onclick="if(!event.ctrlKey && !event.metaKey && event.button !== 1) { event.preventDefault(); naviga('ricetta', ${ricetta.pk_ricetta});}">
                                     ${ricetta.titolo}
                                 </a>
                             </div>
