@@ -233,12 +233,16 @@ export async function showRicetta(id) {
 function copiaVersioneTesto() {
     const titoloEl = document.querySelector('.recipe-header-centered h1');
     const titolo = titoloEl ? titoloEl.innerText.trim() : "Ricetta";
+    const porzioniEl = document.getElementById('display-porzioni');
+    const porzioni = porzioniEl ? porzioniEl.innerText.trim() : "";
+    const nporzioni = document.getElementById('input-porzioni') ? document.getElementById('input-porzioni').value : "";
+    const porzioniTesto = porzioni ? `${nporzioni || porzioni}` : "";
     const ingredienti = Array.from(document.querySelectorAll('.ingredient-item'))
         .map(el => "- " + el.innerText.replace(/\s+/g, ' ').trim())
         .join('\n');
     const esecuzione = document.getElementById('exec-to-copy').innerText;
 
-    const testoFinale = `📖 ${titolo} \n\n🛒 INGREDIENTI: \n${ingredienti} \n\n👨‍🍳 PREPARAZIONE: \n${esecuzione} `;
+    const testoFinale = `📖 ${titolo} \n${porzioniTesto}\n\n🛒 INGREDIENTI: \n${ingredienti} \n\n👨‍🍳 PREPARAZIONE: \n${esecuzione} `;
 
     navigator.clipboard.writeText(testoFinale).then(() => {
         alert("Versione testuale copiata negli appunti!");
