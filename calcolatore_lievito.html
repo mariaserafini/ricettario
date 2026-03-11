@@ -2,15 +2,21 @@
 <html lang="it">
 
 <head>
+    <link rel="icon" type="image/png" href="lievito.jpg">
+    <link rel="apple-touch-icon" href="lievito.jpg">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calcolatore Lievitazione</title>
     <link rel="stylesheet" href="style.css">
     <style>
         body {
-            padding: 20px;
+            padding: 10px;
+            /* Ridotto il padding per dare più spazio al contenuto su mobile */
             display: flex;
             justify-content: center;
             background-color: #f4f7f6;
+            margin: 0;
         }
 
         .result-box {
@@ -68,6 +74,22 @@
             padding: 2px 6px;
             border-radius: 4px;
             float: right;
+        }
+
+        .search-form-container {
+            width: 100%;
+            /* Occupa tutto lo spazio disponibile */
+            max-width: 600px;
+            /* Ma non superare i 600px su schermi grandi (PC) */
+            margin-top: 20px;
+        }
+
+        /* Assicurati che i campi di input non siano troppo piccoli al tocco */
+        input,
+        select,
+        button {
+            font-size: 16px !important;
+            /* Previene lo zoom automatico di iOS sui campi */
         }
     </style>
 </head>
