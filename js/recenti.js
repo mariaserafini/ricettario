@@ -11,7 +11,7 @@ export async function showLatest() {
         .select(`pk_ricetta, titolo, autore, voto, immagine, nascosta, data, tempo_cottura, tempo_preparazione, tempo_agg, immagine, categorie(categoria, sottocategoria)`)
         .order('data', { ascending: false })
         .order('pk_ricetta', { ascending: false })
-        .limit(36);
+        .limit(100);
 
     if (error) {
         app.innerHTML = `<p>Errore: ${error.message}</p>`;
