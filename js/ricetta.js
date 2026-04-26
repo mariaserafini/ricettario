@@ -6,6 +6,11 @@ import { renderDifficolta, renderStars, attivaSchermoSempreAcceso } from './ui.j
 import { showForm } from './form-ricetta.js';
 import { apriCollegamento } from './links.js';
 
+function linkify(text) {
+    const urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+    return text.replace(urlPattern, '<a href="$1" target="_blank" style="color: #e67e22; text-decoration: underline;">$1</a>');
+}
+
 export async function showRicetta(id) {
     attivaSchermoSempreAcceso();
     window.saveComment = saveComment;
@@ -187,7 +192,7 @@ export async function showRicetta(id) {
 
             <div class="execution-box">
                 <h3>Preparazione</h3>
-                <p id="exec-to-copy" style="white-space: pre-line;">${r.esecuzione}</p>
+                <p id="exec-to-copy" style="white-space: pre-line;">${linkify(r.esecuzione)}</p>
             </div>
 
                 <div class="recipe-footer-meta">
@@ -216,7 +221,7 @@ export async function showRicetta(id) {
                     ${r.commenti && r.commenti.length > 0
             ? r.commenti.map(c => `
                             <div class="comment-card-aside" style="background: #fff; margin-bottom: 10px; padding: 10px; border-left: 4px solid orange;">
-                                <p>${c.contenuto}</p>
+                                <p>${linkify(c.contenuto)}</p>
                                 <small>${c.autore} - ${new Date(c.data_commento).toLocaleDateString()}</small>
                             </div>
                             `).join('')

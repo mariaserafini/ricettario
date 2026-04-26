@@ -2,6 +2,8 @@ import { _supabase, app } from './config.js';
 
 let selectedIncludes = [];
 let selectedExcludes = [];
+
+
 export async function showSearch() {
     app.innerHTML = `<div class="loader">Preparazione filtri...</div>`;
 
