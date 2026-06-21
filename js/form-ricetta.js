@@ -157,7 +157,7 @@ export async function showForm(id = null, prefillData = null) {
 
         tCottura = getHM(r.tempo_cottura);
         tPrep = getHM(r.tempo_preparazione);
-        tAgg = getHM(r.tempo_aggiuntivo);
+        tAgg = getHM(r.tempo_agg);
 
     } else if (prefillData) {
         // Mappiamo i dati dal parser al formato del form
